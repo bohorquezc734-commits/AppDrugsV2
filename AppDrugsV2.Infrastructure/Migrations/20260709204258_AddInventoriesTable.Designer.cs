@@ -4,6 +4,7 @@ using AppDrugsV2.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppDrugsV2.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709204258_AddInventoriesTable")]
+    partial class AddInventoriesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,89 +24,6 @@ namespace AppDrugsV2.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("AppDrugsV2.Domain.Entities.Appointment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<byte[]>("ArchivoAutorizacion")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("ArchivoContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ArchivoNombre")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaEntrega")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GestorFarmaceuticoId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Observaciones")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("GestorFarmaceuticoId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Appointments", (string)null);
-                });
-
-            modelBuilder.Entity("AppDrugsV2.Domain.Entities.AppointmentDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("InventoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
-
-                    b.HasIndex("InventoryId");
-
-                    b.ToTable("AppointmentDetails", (string)null);
-                });
 
             modelBuilder.Entity("AppDrugsV2.Domain.Entities.Drug", b =>
                 {
@@ -285,44 +205,6 @@ namespace AppDrugsV2.Infrastructure.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("AppDrugsV2.Domain.Entities.Appointment", b =>
-                {
-                    b.HasOne("AppDrugsV2.Domain.Entities.GestorFarmaceutico", "GestorFarmaceutico")
-                        .WithMany()
-                        .HasForeignKey("GestorFarmaceuticoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("AppDrugsV2.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("GestorFarmaceutico");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AppDrugsV2.Domain.Entities.AppointmentDetail", b =>
-                {
-                    b.HasOne("AppDrugsV2.Domain.Entities.Appointment", "Appointment")
-                        .WithMany("Details")
-                        .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("AppDrugsV2.Domain.Entities.Inventory", "Inventory")
-                        .WithMany()
-                        .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
-
-                    b.Navigation("Inventory");
-                });
-
             modelBuilder.Entity("AppDrugsV2.Domain.Entities.Inventory", b =>
                 {
                     b.HasOne("AppDrugsV2.Domain.Entities.Drug", "Drug")
@@ -340,11 +222,6 @@ namespace AppDrugsV2.Infrastructure.Migrations
                     b.Navigation("Drug");
 
                     b.Navigation("GestorFarmaceutico");
-                });
-
-            modelBuilder.Entity("AppDrugsV2.Domain.Entities.Appointment", b =>
-                {
-                    b.Navigation("Details");
                 });
 #pragma warning restore 612, 618
         }

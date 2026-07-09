@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Infrastructure.Persistence;
 using AppDrugsV2.Infrastructure.Services.Auth;
+using AppDrugsV2.Infrastructure.Services.Reports;
 
 namespace AppDrugsV2.Infrastructure
 {
@@ -29,6 +30,9 @@ namespace AppDrugsV2.Infrastructure
 
             // Registrar HttpContextAccessor
             services.AddHttpContextAccessor();
+
+            // Registrar servicios de reportes
+            services.AddScoped<IExcelExportService, ExcelExportService>();
 
             return services;
         }

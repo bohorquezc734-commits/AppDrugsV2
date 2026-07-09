@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Rotativa.AspNetCore;
 using System.Text;
 using AppDrugsV2.Application;
 using AppDrugsV2.Infrastructure;
@@ -21,7 +22,7 @@ builder.Services.AddCors(options =>
 });
 
 // Agregar servicios
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configurar Swagger con autenticación JWT
@@ -81,6 +82,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Configurar Rotativa (wkhtmltopdf)
+var webRootPath = app.Environment.WebRootPath ?? app.Environment.ContentRootPath;
+RotativaConfiguration.Setup(webRootPath, "Rotativa");
 
 // ✅ USAR CORS (después de app = builder.Build())
 app.UseCors("AllowReactApp");
