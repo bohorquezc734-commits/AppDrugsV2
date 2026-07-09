@@ -1,14 +1,19 @@
-# === BACKEND (.NET) ===
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
 # Visual Studio
-bin/
-obj/
-*.user
-*.suo
+.vs/
+*.vsidx
+*.db
+*.db-shm
+*.db-wal
+.DTBCache.v2
+DesignTimeBuild/
+FileContentIndex/
 
-# === FRONTEND (React) ===
-# Node modules
-/node_modules
-/build
-
-# Common
-.DS_Store
+# Otros archivos temporales
+*.tmp
+*.temp
+*.cache
+*.log

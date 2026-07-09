@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { drugsService, Drug } from '../services/drugs';
 import { authService } from '../services/auth';
 import { toast } from 'react-toastify';
+import api from '../services/api';
+import { reportsService, downloadFile } from '../services/reports';
+import ReportModal from '../components/Reports/ReportModal';
 
 const Dashboard: React.FC = () => {
   const [drugs, setDrugs] = useState<Drug[]>([]);
@@ -11,6 +14,11 @@ const Dashboard: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDrug, setSelectedDrug] = useState<Drug | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportType, setReportType] = useState<'appointments' | 'inventory'>('appointments');
+  const [sedes, setSedes] = useState<Array<{ id: number; nombreSede: string }>>([]);
+  const [reportFilters, setReportFilters] = useState<any>({});
   const navigate = useNavigate();
   const user = authService.getUser();
 
@@ -131,6 +139,79 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const cleanReportFilters = (filters: any) => {
+    const params: any = {};
+    if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters.dateTo) params.dateTo = filters.dateTo;
+    if (filters.status) params.status = filters.status;
+    if (filters.gestorId !== undefined && filters.gestorId !== null) params.gestorId = filters.gestorId;
+    if (filters.onlyActive !== undefined) params.onlyActive = filters.onlyActive;
+    return params;
+  };
+
+  const loadSedes = async () => {
+    try {
+      const response = await api.get('/Gestores');
+      setSedes(response.data);
+    } catch (error) {
+      console.error('Error cargando sedes:', error);
+      toast.error('No se pudieron cargar las sedes');
+    }
+  };
+
+  const handleOpenReportModal = async (type: 'appointments' | 'inventory') => {
+    setReportType(type);
+    setShowReportModal(true);
+    if (type === 'inventory') {
+      await loadSedes();
+    }
+  };
+
+  const handleExportReport = async (format: 'excel' | 'pdf') => {
+    setReportLoading(true);
+    try {
+      const params = cleanReportFilters(reportFilters);
+      let data: Blob;
+      let fileName = '';
+
+      if (reportType === 'appointments') {
+        if (format === 'excel') {
+          data = await reportsService.exportAppointmentsExcel(params);
+          fileName = `Turnos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        } else {
+          data = await reportsService.exportAppointmentsPDF(params);
+          fileName = `Turnos_${new Date().toISOString().slice(0, 10)}.pdf`;
+        }
+      } else {
+        if (format === 'excel') {
+          data = await reportsService.exportInventoryExcel(params);
+          fileName = `Inventario_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        } else {
+          data = await reportsService.exportInventoryPDF(params);
+          fileName = `Inventario_${new Date().toISOString().slice(0, 10)}.pdf`;
+        }
+      }
+
+      downloadFile(data, fileName);
+      toast.success('Reporte descargado exitosamente');
+    } catch (error) {
+      console.error('Error exportando reporte:', error);
+      toast.error('Error al descargar el reporte');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleApplyFilters = (filters: any) => {
+    setReportFilters(filters);
+    toast.info('Filtros aplicados');
+  };
+
+  const handleResetFilters = () => {
+    setReportFilters({});
+    toast.info('Filtros restablecidos');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -191,6 +272,26 @@ const Dashboard: React.FC = () => {
               className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
             >
               + Nuevo
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-gray-600">Exporta reportes de turnos o inventario desde aquí.</div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => handleOpenReportModal('appointments')}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+            >
+              📊 Reporte Turnos
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOpenReportModal('inventory')}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+            >
+              📦 Reporte Inventario
             </button>
           </div>
         </div>
@@ -474,6 +575,19 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        title={reportType === 'appointments' ? '📊 Reporte de Turnos' : '📦 Reporte de Inventario'}
+        type={reportType}
+        loading={reportLoading}
+        onExcel={() => handleExportReport('excel')}
+        onPdf={() => handleExportReport('pdf')}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={handleResetFilters}
+        sedes={sedes}
+      />
     </div>
   );
 };
