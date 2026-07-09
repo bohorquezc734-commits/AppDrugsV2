@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -44,3 +45,44 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+=======
+# 🏥 AppDrugsV2 API
+
+API REST para gestión de medicamentos/farmacia construida con **.NET 8** siguiendo los principios de **Clean Architecture** y **CQRS**.
+
+---
+
+## 🛠️ Tecnologías
+
+| Tecnología | Versión | Uso |
+|------------|---------|-----|
+| .NET | 8.0 | Framework base |
+| ASP.NET Core | 8.0 | Web API |
+| Entity Framework Core | 8.0 | ORM - Acceso a datos |
+| SQL Server | - | Base de datos |
+| MediatR | 12.0 | CQRS - Desacoplamiento de handlers |
+| FluentValidation | 11.0 | Validación de requests |
+| BCrypt.Net-Next | 4.2 | Hash de contraseñas |
+| JWT Bearer | 8.0 | Autenticación con tokens |
+| Serilog | 10.0 | Logging estructurado |
+| Swagger/OpenAPI | 6.5 | Documentación de API |
+
+---
+
+## 📦 Funcionalidades
+
+- ✅ Registro de usuarios con roles (Admin, Pharmacist, User)
+- ✅ Autenticación JWT (login con token)
+- ✅ CRUD de medicamentos
+- ✅ Control de stock y vencimientos
+- ✅ Búsqueda y filtros por categoría/receta
+- ✅ Paginación de resultados
+- ✅ Validaciones con FluentValidation
+- ✅ Documentación Swagger
+
+---
+
+## 🏗️ Arquitectura
+
+El proyecto sigue **Clean Architecture** con 4 capas:
+>>>>>>> 3574b847b25fd57e2c479cc7f5cee8cf4921ace4
