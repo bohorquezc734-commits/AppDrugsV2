@@ -1,0 +1,96 @@
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Features.Appointments.Commands;
+using AppDrugsV2.Application.Features.Appointments.Queries;
+
+namespace AppDrugsV2.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class AppointmentsController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+
+        public AppointmentsController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] ListAppointmentsQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet("mis-turnos")]
+        public async Task<IActionResult> GetMyAppointments([FromQuery] ListAppointmentsQuery query)
+        {
+            // El servicio CurrentUserService debe proveer el UserId
+            // Asumimos que se inyecta o se obtiene de los claims
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userId, out int id))
+                return Unauthorized();
+
+            query.UserId = id;
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new GetAppointmentQuery { Id = id });
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> Create([FromForm] CreateAppointmentCommand command)
+        {
+            // Procesar el archivo en el controlador (NO en Application)
+            if (Request.Form.Files.Count > 0)
+            {
+                var file = Request.Form.Files[0];
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                command.ArchivoAutorizacion = memoryStream.ToArray();
+                command.ArchivoNombre = file.FileName;
+                command.ArchivoContentType = file.ContentType;
+            }
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetById), new { id = result.Value }, new { appointmentId = result.Value });
+
+            return BadRequest(new { error = result.Error });
+        }
+        [HttpPatch("{id}/status")]
+        [Authorize(Roles = "Admin,Pharmacist")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateAppointmentStatusCommand command)
+        {
+            if (id != command.AppointmentId)
+                return BadRequest(new { error = "El ID en la URL no coincide con el ID en el cuerpo." });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Estado del turno actualizado exitosamente." });
+
+            if (result.Error.Contains("no existe"))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
+    }
+}
