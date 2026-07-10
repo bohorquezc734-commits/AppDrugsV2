@@ -22,6 +22,18 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const user = authService.getUser();
 
+  // 🔐 Verificar permisos
+  const isAdmin = authService.isAdmin();
+  const isPharmacist = authService.isPharmacist();
+  const isRegularUser = authService.isUser();
+
+  // Redirigir afiliados al dashboard simple
+  useEffect(() => {
+    if (isRegularUser) {
+      navigate('/user-dashboard');
+    }
+  }, [isRegularUser, navigate]);
+
   const [form, setForm] = useState({
     name: '',
     genericName: '',
@@ -32,32 +44,34 @@ const Dashboard: React.FC = () => {
     requiresPrescription: false,
     expirationDate: '',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
-    loadDrugs();
+    loadDrugs(1);
   }, []);
 
- const loadDrugs = async () => {
-  try {
-    setLoading(true);
-    console.log("🔍 Buscando medicamentos...");
-    const data = await drugsService.getAll({ searchTerm: searchTerm || undefined });
-    console.log("📦 Datos recibidos:", data);
-    console.log("📊 Tipo de datos:", typeof data);
-    console.log("📊 ¿Es arreglo?", Array.isArray(data));
-    console.log("📊 Longitud:", data?.length);
-    setDrugs(data);
-  } catch (error) {
-    console.error("❌ Error cargando medicamentos:", error);
-    toast.error('Error cargando medicamentos');
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadDrugs = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data = await drugsService.getAll({
+        searchTerm: searchTerm || undefined,
+        page,
+        pageSize,
+      });
+      setDrugs(data);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('❌ Error cargando medicamentos:', error);
+      toast.error('Error cargando medicamentos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    loadDrugs();
+    loadDrugs(1);
   };
 
   const handleLogout = () => {
@@ -267,33 +281,42 @@ const Dashboard: React.FC = () => {
                 🔍 Buscar
               </button>
             </form>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
-            >
-              + Nuevo
-            </button>
+            {/* 🔐 Botón "+ Nuevo" solo para Admin */}
+            {isAdmin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+              >
+                + Nuevo
+              </button>
+            )}
           </div>
         </div>
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-gray-600">Exporta reportes de turnos o inventario desde aquí.</div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => handleOpenReportModal('appointments')}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-            >
-              📊 Reporte Turnos
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOpenReportModal('inventory')}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
-            >
-              📦 Reporte Inventario
-            </button>
+          <div className="text-sm text-gray-600">
+            {isAdmin && 'Administrador: Exporta reportes de turnos o inventario desde aquí.'}
+            {isPharmacist && 'Gestor Farmacéutico: Exporta reportes de tu sede.'}
           </div>
+          {/* 🔐 Botones de reportes solo para Admin y Pharmacist */}
+          {(isAdmin || isPharmacist) && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => handleOpenReportModal('appointments')}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+              >
+                📊 Reporte Turnos
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenReportModal('inventory')}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+              >
+                📦 Reporte Inventario
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Lista de medicamentos */}
@@ -322,31 +345,62 @@ const Dashboard: React.FC = () => {
                   </span>
                 )}
                 
-                {/* Botones de acción - NUEVOS */}
+                {/* 🔐 Botones de acción - Condicionales por rol */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => openEditModal(drug)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition"
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(drug.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition"
-                  >
-                    🗑️ Eliminar
-                  </button>
-                  <button
-                    onClick={() => handleUpdateStock(drug.id)}
-                    className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition"
-                  >
-                    📦 Stock
-                  </button>
+                  {/* ✏️ EDITAR - Solo Admin */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => openEditModal(drug)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition"
+                    >
+                      ✏️ Editar
+                    </button>
+                  )}
+                  
+                  {/* 🗑️ ELIMINAR - Solo Admin */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDelete(drug.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition"
+                    >
+                      🗑️ Eliminar
+                    </button>
+                  )}
+                  
+                  {/* 📦 STOCK - Admin y Pharmacist */}
+                  {(isAdmin || isPharmacist) && (
+                    <button
+                      onClick={() => handleUpdateStock(drug.id)}
+                      className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition"
+                    >
+                      📦 Stock
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+          <button
+            type="button"
+            onClick={() => loadDrugs(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ← Anterior
+          </button>
+          <span className="text-sm text-gray-700">Página {currentPage}</span>
+          <button
+            type="button"
+            onClick={() => loadDrugs(currentPage + 1)}
+            disabled={drugs.length < pageSize}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Siguiente →
+          </button>
+        </div>
 
         <p className="text-sm text-gray-500 mt-4 text-center">
           Mostrando {drugs.length} medicamento(s)
