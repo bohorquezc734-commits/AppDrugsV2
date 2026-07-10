@@ -8,6 +8,8 @@ const UserDashboard: React.FC = () => {
   const [drugs, setDrugs] = useState<Drug[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const navigate = useNavigate();
   const user = authService.getUser();
 
@@ -19,14 +21,19 @@ const UserDashboard: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    loadDrugs();
+    loadDrugs(1);
   }, []);
 
-  const loadDrugs = async () => {
+  const loadDrugs = async (page = 1) => {
     try {
       setLoading(true);
-      const data = await drugsService.getAll({ searchTerm: searchTerm || undefined });
+      const data = await drugsService.getAll({
+        searchTerm: searchTerm || undefined,
+        page,
+        pageSize,
+      });
       setDrugs(data);
+      setCurrentPage(page);
     } catch (error) {
       console.error('Error cargando medicamentos:', error);
       toast.error('Error cargando medicamentos');
@@ -37,7 +44,7 @@ const UserDashboard: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    loadDrugs();
+    loadDrugs(1);
   };
 
   const handleLogout = () => {
@@ -114,46 +121,59 @@ const UserDashboard: React.FC = () => {
             <p className="text-gray-500">No hay medicamentos disponibles</p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {drugs.map((drug) => (
-              <div
-                key={drug.id}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition"
-              >
-                <h3 className="font-bold text-lg text-gray-800">{drug.name}</h3>
-                <p className="text-sm text-gray-500">{drug.genericName}</p>
-                <p className="text-sm text-gray-600 mt-1">🧪 {drug.laboratory}</p>
-                <p className="text-green-600 font-bold text-lg mt-2">
-                  ${drug.price.toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-600">📦 Stock: {drug.stock}</p>
-                <p className="text-sm text-gray-600">📂 {drug.category}</p>
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {drugs.map((drug) => (
+                <div key={drug.id} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition">
+                  <h3 className="font-bold text-lg text-gray-800">{drug.name}</h3>
+                  <p className="text-sm text-gray-500">{drug.genericName}</p>
+                  <p className="text-sm text-gray-600 mt-1">🧪 {drug.laboratory}</p>
+                  <p className="text-green-600 font-bold text-lg mt-2">${drug.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">📦 Stock: {drug.stock}</p>
+                  <p className="text-sm text-gray-600">📂 {drug.category}</p>
 
-                {drug.requiresPrescription && (
-                  <span className="inline-block mt-2 bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs">
-                    📋 Requiere receta
-                  </span>
-                )}
-                {drug.isExpired && (
-                  <span className="inline-block mt-2 bg-red-200 text-red-800 px-2 py-1 rounded text-xs ml-1">
-                    ⚠️ Vencido
-                  </span>
-                )}
+                  {drug.requiresPrescription && (
+                    <span className="inline-block mt-2 bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs">
+                      📋 Requiere receta
+                    </span>
+                  )}
+                  {drug.isExpired && (
+                    <span className="inline-block mt-2 bg-red-200 text-red-800 px-2 py-1 rounded text-xs ml-1">
+                      ⚠️ Vencido
+                    </span>
+                  )}
 
-                {/* Sin botones de acción para afiliados */}
-                <div className="mt-4 p-3 bg-gray-50 rounded text-center">
-                  <p className="text-xs text-gray-500">
-                    📖 Solo visualización - Sin permisos para editar
-                  </p>
+                  {/* Sin botones de acción para afiliados */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded text-center">
+                    <p className="text-xs text-gray-500">📖 Solo visualización - Sin permisos para editar</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+              <button
+                type="button"
+                onClick={() => loadDrugs(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm text-gray-700">Página {currentPage}</span>
+              <button
+                type="button"
+                onClick={() => loadDrugs(currentPage + 1)}
+                disabled={drugs.length < pageSize}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Siguiente →
+              </button>
+            </div>
+          </>
         )}
 
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          Mostrando {drugs.length} medicamento(s)
-        </p>
+        <p className="text-sm text-gray-500 mt-4 text-center">Mostrando {drugs.length} medicamento(s)</p>
       </div>
     </div>
   );

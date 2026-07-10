@@ -44,32 +44,34 @@ const Dashboard: React.FC = () => {
     requiresPrescription: false,
     expirationDate: '',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
-    loadDrugs();
+    loadDrugs(1);
   }, []);
 
- const loadDrugs = async () => {
-  try {
-    setLoading(true);
-    console.log("🔍 Buscando medicamentos...");
-    const data = await drugsService.getAll({ searchTerm: searchTerm || undefined });
-    console.log("📦 Datos recibidos:", data);
-    console.log("📊 Tipo de datos:", typeof data);
-    console.log("📊 ¿Es arreglo?", Array.isArray(data));
-    console.log("📊 Longitud:", data?.length);
-    setDrugs(data);
-  } catch (error) {
-    console.error("❌ Error cargando medicamentos:", error);
-    toast.error('Error cargando medicamentos');
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadDrugs = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data = await drugsService.getAll({
+        searchTerm: searchTerm || undefined,
+        page,
+        pageSize,
+      });
+      setDrugs(data);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('❌ Error cargando medicamentos:', error);
+      toast.error('Error cargando medicamentos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    loadDrugs();
+    loadDrugs(1);
   };
 
   const handleLogout = () => {
@@ -379,6 +381,26 @@ const Dashboard: React.FC = () => {
             ))}
           </div>
         )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+          <button
+            type="button"
+            onClick={() => loadDrugs(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ← Anterior
+          </button>
+          <span className="text-sm text-gray-700">Página {currentPage}</span>
+          <button
+            type="button"
+            onClick={() => loadDrugs(currentPage + 1)}
+            disabled={drugs.length < pageSize}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Siguiente →
+          </button>
+        </div>
 
         <p className="text-sm text-gray-500 mt-4 text-center">
           Mostrando {drugs.length} medicamento(s)
