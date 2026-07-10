@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Drugs.Commands;
 using AppDrugsV2.Application.Features.Drugs.Queries;
 
@@ -42,7 +43,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> Create([FromBody] CreateDrugCommand command)
         {
             var result = await _mediator.Send(command);
@@ -54,52 +55,52 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDrugCommand command)
         {
             if (id != command.Id)
-                return BadRequest(new { error = "ID en la URL no coincide con el ID en el cuerpo" });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Medicamento actualizado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.DrugUpdated });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             var command = new DeleteDrugCommand { Id = id };
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Medicamento eliminado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.DrugDeleted });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
         }
 
         [HttpPatch("{id}/stock")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockCommand command)
         {
             if (id != command.DrugId)
-                return BadRequest(new { error = "ID en la URL no coincide con el ID en el cuerpo" });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Stock actualizado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.StockUpdated });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });

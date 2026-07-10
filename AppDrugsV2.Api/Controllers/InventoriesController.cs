@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Inventories.Commands;
 using AppDrugsV2.Application.Features.Inventories.Queries;
 
@@ -19,7 +20,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> GetAll([FromQuery] ListInventoriesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -27,7 +28,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -42,7 +43,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> Create([FromBody] CreateInventoryCommand command)
         {
             var result = await _mediator.Send(command);
@@ -58,29 +59,29 @@ namespace AppDrugsV2.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateInventoryCommand command)
         {
             if (id != command.Id)
-                return BadRequest(new { error = "El ID en la URL no coincide con el ID del cuerpo" });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Inventario actualizado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.InventoryUpdated });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _mediator.Send(new DeleteInventoryCommand { Id = id });
 
             if (result.IsSuccess)
-                return Ok(new { message = "Inventario eliminado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.InventoryDeleted });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -91,14 +92,14 @@ namespace AppDrugsV2.Api.Controllers
         public async Task<IActionResult> AddStock(int id, [FromBody] AddStockCommand command)
         {
             if (id != command.InventoryId)
-                return BadRequest(new { error = "El ID en la URL no coincide con el ID del cuerpo" });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Stock agregado exitosamente" });
+                return Ok(new { message = AppConstants.Messages.StockAdded });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -109,14 +110,14 @@ namespace AppDrugsV2.Api.Controllers
         public async Task<IActionResult> RemoveStock(int id, [FromBody] RemoveStockCommand command)
         {
             if (id != command.InventoryId)
-                return BadRequest(new { error = "El ID en la URL no coincide con el ID del cuerpo" });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Stock removido exitosamente" });
+                return Ok(new { message = AppConstants.Messages.StockRemoved });
 
-            if (result.Error.Contains("no encontrado"))
+            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
