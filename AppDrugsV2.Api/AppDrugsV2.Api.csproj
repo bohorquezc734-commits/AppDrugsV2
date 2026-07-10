@@ -13,6 +13,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="Rotativa\wkhtmltopdf.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Rotativa.AspNetCore" Version="1.4.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.0.0" />
