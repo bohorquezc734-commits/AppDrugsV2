@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Features.Reports.Queries;
 
@@ -9,7 +11,7 @@ namespace AppDrugsV2.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin,Pharmacist")]
+    [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
     public class ReportsController : Controller
     {
         private readonly IMediator _mediator;
@@ -17,8 +19,8 @@ namespace AppDrugsV2.Api.Controllers
 
         public ReportsController(IMediator mediator, IExcelExportService excelExportService)
         {
-            _mediator = mediator;
-            _excelExportService = excelExportService;
+            _mediator            = mediator;
+            _excelExportService  = excelExportService;
         }
 
         // ─── TURNOS ───────────────────────────────────────────────────────────────
@@ -30,24 +32,21 @@ namespace AppDrugsV2.Api.Controllers
         public async Task<IActionResult> ExportAppointmentsExcel(
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
-            [FromQuery] string? status,
-            [FromQuery] int? gestorId)
+            [FromQuery] string?   status,
+            [FromQuery] int?      gestorId)
         {
             var data = await _mediator.Send(new GetAppointmentsReportQuery
             {
-                DateFrom = dateFrom,
-                DateTo = dateTo,
-                Status = status,
+                DateFrom             = dateFrom,
+                DateTo               = dateTo,
+                Status               = status,
                 GestorFarmaceuticoId = gestorId
             });
 
-            var bytes = _excelExportService.ExportAppointmentsToExcel(data);
-            var fileName = $"Turnos_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            var bytes    = _excelExportService.ExportAppointmentsToExcel(data);
+            var fileName = $"{AppConstants.Rotativa.FileNames.AppointmentsPrefix}_{DateTime.Now.ToString(AppConstants.Rotativa.FileNames.DateFormat)}.xlsx";
 
-            return File(
-                bytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                fileName);
+            return File(bytes, AppConstants.ContentTypes.Excel, fileName);
         }
 
         /// <summary>
@@ -57,26 +56,30 @@ namespace AppDrugsV2.Api.Controllers
         public async Task<IActionResult> ExportAppointmentsPdf(
             [FromQuery] DateTime? dateFrom,
             [FromQuery] DateTime? dateTo,
-            [FromQuery] string? status,
-            [FromQuery] int? gestorId)
+            [FromQuery] string?   status,
+            [FromQuery] int?      gestorId)
         {
             var data = await _mediator.Send(new GetAppointmentsReportQuery
             {
-                DateFrom = dateFrom,
-                DateTo = dateTo,
-                Status = status,
+                DateFrom             = dateFrom,
+                DateTo               = dateTo,
+                Status               = status,
                 GestorFarmaceuticoId = gestorId
             });
 
-            var fileName = $"Turnos_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var fileName = $"{AppConstants.Rotativa.FileNames.AppointmentsPrefix}_{DateTime.Now.ToString(AppConstants.Rotativa.FileNames.DateFormat)}.pdf";
 
-            return new ViewAsPdf("AppointmentReport", data)
+            return new ViewAsPdf(AppConstants.Rotativa.Views.AppointmentReport, data)
             {
-                FileName = fileName,
-                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 15, 10, 15),
-                CustomSwitches = "--disable-smart-shrinking"
+                FileName        = fileName,
+                PageOrientation = Orientation.Landscape,
+                PageSize        = Size.A4,
+                PageMargins     = new Margins(
+                    AppConstants.Rotativa.MarginTop,
+                    AppConstants.Rotativa.MarginLeft,
+                    AppConstants.Rotativa.MarginBottom,
+                    AppConstants.Rotativa.MarginRight),
+                CustomSwitches = AppConstants.Rotativa.DisableSmartShrinking
             };
         }
 
@@ -87,24 +90,21 @@ namespace AppDrugsV2.Api.Controllers
         /// </summary>
         [HttpGet("inventory/excel")]
         public async Task<IActionResult> ExportInventoryExcel(
-            [FromQuery] int? gestorId,
+            [FromQuery] int?  gestorId,
             [FromQuery] bool? onlyActive,
             [FromQuery] bool? onlyLowStock)
         {
             var data = await _mediator.Send(new GetInventoryReportQuery
             {
                 GestorFarmaceuticoId = gestorId,
-                OnlyActive = onlyActive,
-                OnlyLowStock = onlyLowStock
+                OnlyActive           = onlyActive,
+                OnlyLowStock         = onlyLowStock
             });
 
-            var bytes = _excelExportService.ExportInventoryToExcel(data);
-            var fileName = $"Inventario_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            var bytes    = _excelExportService.ExportInventoryToExcel(data);
+            var fileName = $"{AppConstants.Rotativa.FileNames.InventoryPrefix}_{DateTime.Now.ToString(AppConstants.Rotativa.FileNames.DateFormat)}.xlsx";
 
-            return File(
-                bytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                fileName);
+            return File(bytes, AppConstants.ContentTypes.Excel, fileName);
         }
 
         /// <summary>
@@ -112,26 +112,30 @@ namespace AppDrugsV2.Api.Controllers
         /// </summary>
         [HttpGet("inventory/pdf")]
         public async Task<IActionResult> ExportInventoryPdf(
-            [FromQuery] int? gestorId,
+            [FromQuery] int?  gestorId,
             [FromQuery] bool? onlyActive,
             [FromQuery] bool? onlyLowStock)
         {
             var data = await _mediator.Send(new GetInventoryReportQuery
             {
                 GestorFarmaceuticoId = gestorId,
-                OnlyActive = onlyActive,
-                OnlyLowStock = onlyLowStock
+                OnlyActive           = onlyActive,
+                OnlyLowStock         = onlyLowStock
             });
 
-            var fileName = $"Inventario_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var fileName = $"{AppConstants.Rotativa.FileNames.InventoryPrefix}_{DateTime.Now.ToString(AppConstants.Rotativa.FileNames.DateFormat)}.pdf";
 
-            return new ViewAsPdf("InventoryReport", data)
+            return new ViewAsPdf(AppConstants.Rotativa.Views.InventoryReport, data)
             {
-                FileName = fileName,
-                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 15, 10, 15),
-                CustomSwitches = "--disable-smart-shrinking"
+                FileName        = fileName,
+                PageOrientation = Orientation.Landscape,
+                PageSize        = Size.A4,
+                PageMargins     = new Margins(
+                    AppConstants.Rotativa.MarginTop,
+                    AppConstants.Rotativa.MarginLeft,
+                    AppConstants.Rotativa.MarginBottom,
+                    AppConstants.Rotativa.MarginRight),
+                CustomSwitches = AppConstants.Rotativa.DisableSmartShrinking
             };
         }
     }

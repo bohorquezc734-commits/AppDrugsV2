@@ -1,5 +1,6 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Auth.Commands;
 using AppDrugsV2.Application.Features.Auth.Queries;
 
@@ -22,7 +23,7 @@ namespace AppDrugsV2.Api.Controllers
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { userId = result.Value, message = "Usuario registrado exitosamente" });
+                return Ok(new { userId = result.Value, message = AppConstants.Messages.UserRegistered });
 
             return BadRequest(new { error = result.Error });
         }
