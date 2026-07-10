@@ -124,16 +124,11 @@ const UserDashboard: React.FC = () => {
           <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {drugs.map((drug) => (
-                <div
-                  key={drug.id}
-                  className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition"
-                >
+                <div key={drug.id} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition">
                   <h3 className="font-bold text-lg text-gray-800">{drug.name}</h3>
                   <p className="text-sm text-gray-500">{drug.genericName}</p>
                   <p className="text-sm text-gray-600 mt-1">🧪 {drug.laboratory}</p>
-                  <p className="text-green-600 font-bold text-lg mt-2">
-                    ${drug.price.toFixed(2)}
-                  </p>
+                  <p className="text-green-600 font-bold text-lg mt-2">${drug.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-600">📦 Stock: {drug.stock}</p>
                   <p className="text-sm text-gray-600">📂 {drug.category}</p>
 
@@ -150,9 +145,7 @@ const UserDashboard: React.FC = () => {
 
                   {/* Sin botones de acción para afiliados */}
                   <div className="mt-4 p-3 bg-gray-50 rounded text-center">
-                    <p className="text-xs text-gray-500">
-                      📖 Solo visualización - Sin permisos para editar
-                    </p>
+                    <p className="text-xs text-gray-500">📖 Solo visualización - Sin permisos para editar</p>
                   </div>
                 </div>
               ))}
@@ -180,9 +173,7 @@ const UserDashboard: React.FC = () => {
           </>
         )}
 
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          Mostrando {drugs.length} medicamento(s)
-        </p>
+        <p className="text-sm text-gray-500 mt-4 text-center">Mostrando {drugs.length} medicamento(s)</p>
       </div>
     </div>
   );

@@ -45,4 +45,54 @@ export const authService = {
   },
 
   isAuthenticated: () => !!localStorage.getItem('token'),
+
+  // 🔐 MÉTODOS DE ROLES
+  getUserRole: () => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed.role || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  },
+
+  isAdmin: () => {
+    return authService.getUserRole() === 'Admin';
+  },
+
+  isPharmacist: () => {
+    return authService.getUserRole() === 'Pharmacist';
+  },
+
+  isUser: () => {
+    return authService.getUserRole() === 'User';
+  },
+
+  hasRole: (role: string) => {
+    return authService.getUserRole() === role;
+  },
+
+  canEditDrugs: () => {
+    const userRole = authService.getUserRole();
+    return userRole === 'Admin';
+  },
+
+  canManageSedes: () => {
+    const userRole = authService.getUserRole();
+    return userRole === 'Admin';
+  },
+
+  canViewReports: () => {
+    const userRole = authService.getUserRole();
+    return userRole === 'Admin' || userRole === 'Pharmacist';
+  },
+
+  canUpdateStock: () => {
+    const userRole = authService.getUserRole();
+    return userRole === 'Admin' || userRole === 'Pharmacist';
+  },
 };
