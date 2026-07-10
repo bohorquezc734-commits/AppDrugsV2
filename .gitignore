@@ -51,5 +51,8 @@ secrets.json
 # Publish output
 publish/
 
+# Rotativa - binario grande, instalar localmente
+**/Rotativa/wkhtmltopdf.exe
+
 # Node (si hay frontend)
 node_modules/

@@ -8,20 +8,18 @@ using AppDrugsV2.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ AGREGAR CORS (esto es lo que falta)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")  // Puerto del frontend
+            policy.WithOrigins("http://localhost:3000")  
                   .AllowAnyMethod()
                   .AllowAnyHeader()
                   .AllowCredentials();
         });
 });
 
-// Agregar servicios
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
