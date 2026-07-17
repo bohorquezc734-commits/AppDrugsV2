@@ -17,7 +17,7 @@ const Login: React.FC = () => {
       const response = await authService.login({ email, password });
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response));
-      toast.success('¡Bienvenido!');
+      toast.success('¡Inicio de sesión exitoso!');
       navigate('/dashboard');
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Error al iniciar sesión';

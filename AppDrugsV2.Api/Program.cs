@@ -9,6 +9,7 @@ using AppDrugsV2.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ✅ CORS para desarrollo local (acepta React en http y https)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(AppConstants.Cors.PolicyName,
@@ -83,6 +84,7 @@ var app = builder.Build();
 var webRootPath = app.Environment.WebRootPath ?? app.Environment.ContentRootPath;
 RotativaConfiguration.Setup(webRootPath, AppConstants.Rotativa.FolderName);
 
+// ✅ CORS debe ir antes de Authentication/Authorization
 app.UseCors(AppConstants.Cors.PolicyName);
 
 if (app.Environment.IsDevelopment())

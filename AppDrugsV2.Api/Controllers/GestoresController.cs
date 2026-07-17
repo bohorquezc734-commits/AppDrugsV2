@@ -21,7 +21,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
+        [Authorize] // Todos los usuarios autenticados pueden ver las sedes para crear turnos
         public async Task<IActionResult> GetAll([FromQuery] ListGestoresQuery query)
         {
             var result = await _mediator.Send(query);
