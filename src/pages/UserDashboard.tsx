@@ -1,50 +1,172 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { drugsService, Drug } from '../services/drugs';
 import { authService } from '../services/auth';
+import {
+  appointmentsService,
+  AppointmentDto,
+  CreateAppointmentDetailRequest,
+} from '../services/appointments';
+import { gestoresService, GestorDto } from '../services/gestores';
+import api from '../services/api';
+import { inventoriesService, InventoryDto } from '../services/inventories';
 import { toast } from 'react-toastify';
 
+interface CartItem {
+  inventoryId: number;
+  drugName: string;
+  quantity: number;
+}
+
+type TabType = 'medicamentos' | 'nuevo-turno' | 'mis-turnos';
+
+const STATUS_LABELS: Record<number, { label: string; color: string }> = {
+  1: { label: 'Recibido',   color: '#3b82f6' },
+  2: { label: 'En Proceso', color: '#f59e0b' },
+  3: { label: 'Entregado',  color: '#10b981' },
+  4: { label: 'Cancelado',  color: '#ef4444' },
+};
+
 const UserDashboard: React.FC = () => {
-  const [drugs, setDrugs] = useState<Drug[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate    = useNavigate();
+  const user        = authService.getUser();
+  const [activeTab, setActiveTab] = useState<TabType>('medicamentos');
+
+  // ─── Medicamentos ────────────────────────────────────────────────────
+  const [drugs, setDrugs]           = useState<Drug[]>([]);
+  const [loadingDrugs, setLoadingDrugs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const navigate = useNavigate();
-  const user = authService.getUser();
 
-  // Verificar que es un User (Afiliado)
+  // ─── Nuevo turno ─────────────────────────────────────────────────────
+  const [gestores, setGestores]         = useState<GestorDto[]>([]);
+  const [selectedGestor, setSelectedGestor] = useState<number>(0);
+  const [sedeInventories, setSedeInventories] = useState<InventoryDto[]>([]);
+  const [cart, setCart]                 = useState<CartItem[]>([]);
+  const [selectedInventory, setSelectedInventory] = useState<number>(0);
+  const [qty, setQty]                   = useState<number>(1);
+  const [archivo, setArchivo]           = useState<File | null>(null);
+  const [submitting, setSubmitting]     = useState(false);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+
+  // ─── Mis turnos ──────────────────────────────────────────────────────
+  const [appointments, setAppointments]     = useState<AppointmentDto[]>([]);
+  const [loadingAppts, setLoadingAppts]     = useState(false);
+
+  // Verificar rol
   useEffect(() => {
     if (!authService.isUser()) {
       navigate('/dashboard');
     }
   }, [navigate]);
 
-  useEffect(() => {
-    loadDrugs(1);
-  }, []);
-
-  const loadDrugs = async (page = 1) => {
+  // Cargar medicamentos
+  const loadDrugs = useCallback(async (page = 1) => {
     try {
-      setLoading(true);
-      const data = await drugsService.getAll({
-        searchTerm: searchTerm || undefined,
-        page,
-        pageSize,
-      });
+      setLoadingDrugs(true);
+      const data = await drugsService.getAll({ searchTerm: searchTerm || undefined, page, pageSize });
       setDrugs(data);
       setCurrentPage(page);
-    } catch (error) {
-      console.error('Error cargando medicamentos:', error);
+    } catch {
       toast.error('Error cargando medicamentos');
     } finally {
-      setLoading(false);
+      setLoadingDrugs(false);
     }
+  }, [searchTerm]);
+
+  useEffect(() => { loadDrugs(1); }, []);
+
+  // Cargar gestores cuando se abre "Nuevo Turno"
+  useEffect(() => {
+    if (activeTab === 'nuevo-turno' && gestores.length === 0) {
+      gestoresService.getAll()
+        .then(data => setGestores(data))
+        .catch(() => toast.error('Error cargando sedes farmacéuticas'));
+    }
+  }, [activeTab, gestores.length]);
+
+  // Cargar inventario cuando cambia la sede seleccionada
+  useEffect(() => {
+    if (selectedGestor > 0) {
+      setLoadingInventory(true);
+      inventoriesService.getAll({ gestorFarmaceuticoId: selectedGestor, onlyActive: true })
+        .then(data => {
+          setSedeInventories(data);
+          if (data.length === 0) {
+            toast.warn('Esta sede no tiene medicamentos disponibles en inventario');
+          }
+        })
+        .catch((err) => {
+          console.error('Error cargando inventario:', err);
+          toast.error('Error cargando inventario de la sede');
+        })
+        .finally(() => setLoadingInventory(false));
+    } else {
+      setSedeInventories([]);
+    }
+  }, [selectedGestor]);
+
+  // Cargar mis turnos
+  const loadAppointments = useCallback(async () => {
+    setLoadingAppts(true);
+    try {
+      const data = await appointmentsService.getMyAppointments();
+      setAppointments(data);
+    } catch {
+      toast.error('Error cargando tus turnos');
+    } finally {
+      setLoadingAppts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'mis-turnos') loadAppointments();
+  }, [activeTab, loadAppointments]);
+
+  // ─── Carrito ─────────────────────────────────────────────────────────
+  const addToCart = () => {
+    const inv = sedeInventories.find(i => i.id === selectedInventory);
+    if (!inv) { toast.warn('Selecciona un medicamento'); return; }
+    if (qty < 1)  { toast.warn('La cantidad debe ser al menos 1'); return; }
+    if (qty > inv.quantity) { toast.warn(`Solo hay ${inv.quantity} en stock para esta sede`); return; }
+    if (cart.find(c => c.inventoryId === inv.id)) {
+      toast.warn('Ese medicamento ya está en el pedido');
+      return;
+    }
+    setCart(prev => [...prev, { inventoryId: inv.id, drugName: inv.drugName, quantity: qty }]);
+    setSelectedInventory(0);
+    setQty(1);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const removeFromCart = (inventoryId: number) =>
+    setCart(prev => prev.filter(c => c.inventoryId !== inventoryId));
+
+  // ─── Crear turno ──────────────────────────────────────────────────────
+  const handleCreateAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
-    loadDrugs(1);
+    if (!selectedGestor) { toast.warn('Selecciona una sede'); return; }
+    if (cart.length === 0) { toast.warn('Agrega al menos un medicamento al pedido'); return; }
+
+    setSubmitting(true);
+    try {
+      const details: CreateAppointmentDetailRequest[] = cart.map(c => ({
+        inventoryId: c.inventoryId,
+        quantity: c.quantity,
+      }));
+
+      await appointmentsService.create(selectedGestor, details, archivo || undefined);
+      toast.success('¡Turno creado exitosamente!');
+      setCart([]);
+      setSelectedGestor(0);
+      setArchivo(null);
+      setActiveTab('mis-turnos');
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Error al crear el turno';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleLogout = () => {
@@ -52,128 +174,303 @@ const UserDashboard: React.FC = () => {
     toast.info('Sesión cerrada');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-600">Cargando medicamentos...</p>
-        </div>
-      </div>
-    );
-  }
+  // ─── UI ───────────────────────────────────────────────────────────────
+  const tabClass = (tab: TabType) =>
+    `px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+      activeTab === tab
+        ? 'bg-blue-600 text-white shadow'
+        : 'bg-white text-gray-600 hover:bg-blue-50 border border-gray-200'
+    }`;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div style={{ minHeight: '100vh', background: '#f1f5f9' }}>
       {/* Navbar */}
-      <nav className="bg-white shadow-md p-4 sticky top-0 z-10">
-        <div className="container mx-auto flex flex-wrap justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">💊</span>
-            <h1 className="text-xl font-bold text-gray-800">AppDrugsV2</h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600 hidden sm:inline">
-              👤 {user?.fullName || 'Usuario'} ({user?.role || 'User'})
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
+      <nav style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 28 }}>💊</span>
+          <span style={{ fontWeight: 700, fontSize: 20, color: '#1e293b' }}>AppDrugsV2</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontSize: 14, color: '#64748b' }}>👤 {user?.fullName} (Afiliado)</span>
+          <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
+            Cerrar Sesión
+          </button>
         </div>
       </nav>
 
-      <div className="container mx-auto p-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h2 className="text-2xl font-bold text-gray-800">📋 Lista de Medicamentos</h2>
-          <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar medicamento..."
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-            >
-              🔍 Buscar
-            </button>
-          </form>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px' }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
+          <button className={tabClass('medicamentos')} onClick={() => setActiveTab('medicamentos')}>
+            💊 Medicamentos
+          </button>
+          <button className={tabClass('nuevo-turno')} onClick={() => setActiveTab('nuevo-turno')}
+            style={{ background: activeTab === 'nuevo-turno' ? '#2563eb' : undefined }}>
+            📋 Crear Turno
+          </button>
+          <button className={tabClass('mis-turnos')} onClick={() => setActiveTab('mis-turnos')}>
+            📁 Mis Turnos
+          </button>
         </div>
 
-        {/* Información de perfil */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-700">
-            <strong>📌 Rol:</strong> Afiliado (Usuario) - Tienes acceso de solo lectura a la lista de medicamentos.
-          </p>
-        </div>
+        {/* ── TAB: Medicamentos ───────────────────────────────────────── */}
+        {activeTab === 'medicamentos' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>📋 Lista de Medicamentos</h2>
+              <form onSubmit={e => { e.preventDefault(); loadDrugs(1); }} style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="Buscar medicamento..."
+                  style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, width: 220 }}
+                />
+                <button type="submit" style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600 }}>
+                  🔍 Buscar
+                </button>
+              </form>
+            </div>
 
-        {/* Lista de medicamentos - SOLO LECTURA */}
-        {drugs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">No hay medicamentos disponibles</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {drugs.map((drug) => (
-                <div key={drug.id} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition">
-                  <h3 className="font-bold text-lg text-gray-800">{drug.name}</h3>
-                  <p className="text-sm text-gray-500">{drug.genericName}</p>
-                  <p className="text-sm text-gray-600 mt-1">🧪 {drug.laboratory}</p>
-                  <p className="text-green-600 font-bold text-lg mt-2">${drug.price.toFixed(2)}</p>
-                  <p className="text-sm text-gray-600">📦 Stock: {drug.stock}</p>
-                  <p className="text-sm text-gray-600">📂 {drug.category}</p>
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 16px', marginBottom: 20 }}>
+              <p style={{ margin: 0, fontSize: 14, color: '#1e40af' }}>
+                <strong>📌 Rol: Afiliado</strong> — Puedes ver medicamentos y crear turnos de entrega.
+              </p>
+            </div>
 
-                  {drug.requiresPrescription && (
-                    <span className="inline-block mt-2 bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs">
-                      📋 Requiere receta
-                    </span>
-                  )}
-                  {drug.isExpired && (
-                    <span className="inline-block mt-2 bg-red-200 text-red-800 px-2 py-1 rounded text-xs ml-1">
-                      ⚠️ Vencido
-                    </span>
-                  )}
-
-                  {/* Sin botones de acción para afiliados */}
-                  <div className="mt-4 p-3 bg-gray-50 rounded text-center">
-                    <p className="text-xs text-gray-500">📖 Solo visualización - Sin permisos para editar</p>
-                  </div>
+            {loadingDrugs ? (
+              <div style={{ textAlign: 'center', padding: 60, color: '#64748b' }}>⏳ Cargando medicamentos...</div>
+            ) : drugs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 12, color: '#64748b' }}>No hay medicamentos disponibles</div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+                  {drugs.map(drug => (
+                    <div key={drug.id} style={{ background: '#fff', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', transition: 'box-shadow 0.2s' }}>
+                      <h3 style={{ fontWeight: 700, fontSize: 16, color: '#1e293b', margin: '0 0 4px' }}>{drug.name}</h3>
+                      <p style={{ fontSize: 13, color: '#94a3b8', margin: '0 0 6px' }}>{drug.genericName}</p>
+                      <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 4px' }}>🧪 {drug.laboratory}</p>
+                      <p style={{ fontSize: 20, fontWeight: 700, color: '#16a34a', margin: '8px 0 4px' }}>${drug.price.toFixed(2)}</p>
+                      <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 2px' }}>📦 Stock: {drug.stock}</p>
+                      <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>📂 {drug.category}</p>
+                      {drug.requiresPrescription && (
+                        <span style={{ display: 'inline-block', marginTop: 8, background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>📋 Requiere receta</span>
+                      )}
+                      <div style={{ marginTop: 12, background: '#f8fafc', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+                        <span style={{ fontSize: 12, color: '#94a3b8' }}>📖 Solo visualización</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
-              <button
-                type="button"
-                onClick={() => loadDrugs(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                ← Anterior
-              </button>
-              <span className="text-sm text-gray-700">Página {currentPage}</span>
-              <button
-                type="button"
-                onClick={() => loadDrugs(currentPage + 1)}
-                disabled={drugs.length < pageSize}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente →
-              </button>
-            </div>
-          </>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 24 }}>
+                  <button onClick={() => loadDrugs(currentPage - 1)} disabled={currentPage === 1}
+                    style={{ padding: '8px 18px', borderRadius: 8, border: '1px solid #e2e8f0', background: currentPage === 1 ? '#f1f5f9' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: '#475569' }}>
+                    ← Anterior
+                  </button>
+                  <span style={{ fontSize: 14, color: '#64748b' }}>Página {currentPage}</span>
+                  <button onClick={() => loadDrugs(currentPage + 1)} disabled={drugs.length < pageSize}
+                    style={{ padding: '8px 18px', borderRadius: 8, border: '1px solid #e2e8f0', background: drugs.length < pageSize ? '#f1f5f9' : '#fff', cursor: drugs.length < pageSize ? 'not-allowed' : 'pointer', color: '#475569' }}>
+                    Siguiente →
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         )}
 
-        <p className="text-sm text-gray-500 mt-4 text-center">Mostrando {drugs.length} medicamento(s)</p>
+        {/* ── TAB: Crear Turno ────────────────────────────────────────── */}
+        {activeTab === 'nuevo-turno' && (
+          <div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', marginBottom: 24 }}>📋 Crear Nuevo Turno</h2>
+
+            <form onSubmit={handleCreateAppointment}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                {/* Columna izquierda */}
+                <div>
+                  {/* Seleccionar sede */}
+                  <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 20 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', marginBottom: 14 }}>🏪 1. Selecciona la Sede Farmacéutica</h3>
+                    {gestores.length === 0 ? (
+                      <p style={{ color: '#94a3b8', fontSize: 14 }}>⏳ Cargando sedes...</p>
+                    ) : (
+                      <select
+                        value={selectedGestor}
+                        onChange={e => {
+                          setSelectedGestor(Number(e.target.value));
+                          setCart([]); // Reset cart if Sede changes
+                          setSelectedInventory(0);
+                        }}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, color: '#1e293b', background: '#fff' }}
+                        required
+                      >
+                        <option value={0}>-- Selecciona una sede --</option>
+                        {gestores.map(g => (
+                          <option key={g.id} value={g.id}>{g.nombreSede} — {g.direccion}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Archivo de autorización */}
+                  <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>📎 2. Archivo de Autorización <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 13 }}>(opcional)</span></h3>
+                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 12 }}>Adjunta la autorización médica si algún medicamento la requiere.</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={e => setArchivo(e.target.files?.[0] || null)}
+                      style={{ fontSize: 14, color: '#475569' }}
+                    />
+                    {archivo && <p style={{ fontSize: 13, color: '#16a34a', marginTop: 6 }}>✅ {archivo.name}</p>}
+                  </div>
+                </div>
+
+                {/* Columna derecha: agregar medicamentos */}
+                <div>
+                  <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: 20 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e293b', marginBottom: 14 }}>💊 3. Medicamentos del Pedido</h3>
+
+                    {loadingInventory && (
+                      <p style={{ fontSize: 13, color: '#3b82f6', marginBottom: 8 }}>⏳ Cargando medicamentos de la sede...</p>
+                    )}
+                    {!loadingInventory && selectedGestor > 0 && sedeInventories.length === 0 && (
+                      <div style={{ background: '#fef9c3', border: '1px solid #fde047', borderRadius: 8, padding: '10px 14px', marginBottom: 8 }}>
+                        <p style={{ margin: 0, fontSize: 13, color: '#854d0e' }}>
+                          ⚠️ Esta sede no tiene medicamentos en inventario. Contacta al administrador.
+                        </p>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                      <select
+                        value={selectedInventory}
+                        onChange={e => setSelectedInventory(Number(e.target.value))}
+                        disabled={selectedGestor === 0 || loadingInventory || sedeInventories.length === 0}
+                        style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, background: (selectedGestor === 0 || sedeInventories.length === 0) ? '#f1f5f9' : '#fff' }}
+                      >
+                        <option value={0}>-- Selecciona medicamento --</option>
+                        {sedeInventories.map(inv => (
+                          <option key={inv.id} value={inv.id}>{inv.drugName} (Stock: {inv.quantity})</option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={1}
+                        value={qty}
+                        onChange={e => setQty(Number(e.target.value))}
+                        style={{ width: 70, padding: '8px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                      />
+                      <button type="button" onClick={addToCart}
+                        style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                        + Agregar
+                      </button>
+                    </div>
+
+                    {cart.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: 14, border: '2px dashed #e2e8f0', borderRadius: 8 }}>
+                        Ningún medicamento agregado aún
+                      </div>
+                    ) : (
+                      <div>
+                        {cart.map(item => (
+                          <div key={item.inventoryId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: 8, marginBottom: 6 }}>
+                            <div>
+                              <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#1e293b' }}>{item.drugName}</p>
+                              <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Cantidad: {item.quantity}</p>
+                            </div>
+                            <button type="button" onClick={() => removeFromCart(item.inventoryId)}
+                              style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    style={{ width: '100%', padding: '14px', background: submitting ? '#93c5fd' : '#2563eb', color: '#fff', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'background 0.2s' }}
+                  >
+                    {submitting ? '⏳ Enviando...' : '📋 Crear Turno'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ── TAB: Mis Turnos ─────────────────────────────────────────── */}
+        {activeTab === 'mis-turnos' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>📁 Mis Turnos</h2>
+              <button onClick={loadAppointments} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14, color: '#475569', fontWeight: 600 }}>
+                🔄 Actualizar
+              </button>
+            </div>
+
+            {loadingAppts ? (
+              <div style={{ textAlign: 'center', padding: 60, color: '#64748b' }}>⏳ Cargando tus turnos...</div>
+            ) : appointments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 12, color: '#64748b' }}>
+                <p style={{ fontSize: 18, marginBottom: 10 }}>📭 No tienes turnos aún</p>
+                <button onClick={() => setActiveTab('nuevo-turno')}
+                  style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
+                  + Crear mi primer turno
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {appointments.map(apt => {
+                  const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: '#64748b' };
+                  return (
+                    <div key={apt.id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
+                        <div>
+                          <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 16, color: '#1e293b' }}>Turno #{apt.id}</p>
+                          <p style={{ margin: '0 0 2px', fontSize: 14, color: '#64748b' }}>🏪 {apt.sedeName}</p>
+                          <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
+                            📅 Creado: {new Date(apt.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span style={{ background: statusInfo.color + '20', color: statusInfo.color, borderRadius: 20, padding: '4px 14px', fontWeight: 700, fontSize: 13, border: `1px solid ${statusInfo.color}40` }}>
+                          {statusInfo.label}
+                        </span>
+                      </div>
+
+                      {apt.details && apt.details.length > 0 && (
+                        <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                          <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Medicamentos solicitados:</p>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {apt.details.map(d => (
+                              <span key={d.id} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 6, padding: '3px 10px', fontSize: 13 }}>
+                                {d.drugName} × {d.quantity}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {apt.observaciones && (
+                        <div style={{ marginTop: 10, background: '#fefce8', borderRadius: 8, padding: '8px 12px' }}>
+                          <p style={{ margin: 0, fontSize: 13, color: '#854d0e' }}>💬 {apt.observaciones}</p>
+                        </div>
+                      )}
+
+                      {apt.fechaEntrega && (
+                        <p style={{ marginTop: 8, fontSize: 13, color: '#16a34a', fontWeight: 600 }}>
+                          📦 Fecha de entrega: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

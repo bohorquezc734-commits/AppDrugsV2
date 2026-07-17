@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
@@ -42,7 +42,11 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                 request.ArchivoContentType
             );
 
-            // 4. Agregar detalles (medicamentos)
+            // 4. Guardar el turno primero para obtener el Id generado por la BD
+            await _context.Appointments.AddAsync(appointment, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // 5. Agregar detalles (medicamentos) usando el Id real del turno
             if (request.Details != null && request.Details.Any())
             {
                 foreach (var detail in request.Details)
@@ -57,7 +61,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                         return Result<int>.Failure($"No hay suficiente stock. Stock disponible: {inventory.Quantity}.");
 
                     var appointmentDetail = new AppointmentDetail(
-                        appointment.Id,
+                        appointment.Id,   // ← Ahora el Id es el real de la BD
                         detail.InventoryId,
                         detail.Quantity
                     );
@@ -65,10 +69,9 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                     inventory.RemoveStock(detail.Quantity);
                     appointment.AddDetail(appointmentDetail);
                 }
-            }
 
-            await _context.Appointments.AddAsync(appointment, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
 
             return Result<int>.Success(appointment.Id);
         }

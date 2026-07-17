@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AppDrugsV2.Application.Features.Inventories.Commands;
@@ -19,7 +19,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize] // Usuarios autenticados pueden ver inventario de sedes para crear turnos
         public async Task<IActionResult> GetAll([FromQuery] ListInventoriesQuery query)
         {
             var result = await _mediator.Send(query);
