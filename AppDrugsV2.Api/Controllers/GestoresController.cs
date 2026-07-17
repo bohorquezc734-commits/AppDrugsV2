@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Gestores.Commands;
 using AppDrugsV2.Application.Features.Gestores.Queries;
 using AppDrugsV2.Application.Common.Results;
@@ -20,7 +21,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize] // Usuarios autenticados pueden ver las sedes para crear turnos
+        [Authorize] // Todos los usuarios autenticados pueden ver las sedes para crear turnos
         public async Task<IActionResult> GetAll([FromQuery] ListGestoresQuery query)
         {
             var result = await _mediator.Send(query);
@@ -28,7 +29,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -43,7 +44,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateGestorCommand command)
         {
             var result = await _mediator.Send(command);

@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Appointments.Commands;
 using AppDrugsV2.Application.Features.Appointments.Queries;
 
@@ -54,7 +55,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = AppConstants.Roles.UserOrAdmin)]
         public async Task<IActionResult> Create([FromForm] CreateAppointmentCommand command)
         {
             // Procesar el archivo en el controlador (NO en Application)
@@ -76,18 +77,18 @@ namespace AppDrugsV2.Api.Controllers
             return BadRequest(new { error = result.Error });
         }
         [HttpPatch("{id}/status")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateAppointmentStatusCommand command)
         {
             if (id != command.AppointmentId)
-                return BadRequest(new { error = "El ID en la URL no coincide con el ID en el cuerpo." });
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
 
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Estado del turno actualizado exitosamente." });
+                return Ok(new { message = AppConstants.Messages.AppointmentUpdated });
 
-            if (result.Error.Contains("no existe"))
+            if (result.Error.Contains(AppConstants.Messages.NotExistsKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
