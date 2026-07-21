@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { toast } from 'react-toastify';
+import { APP_CONSTANTS } from '../constants/appConstants';
 
 const EyeIcon = ({ open }: { open: boolean }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -29,13 +30,24 @@ const Login: React.FC = () => {
   const [focusPwd, setFocusPwd]       = useState(false);
   const navigate = useNavigate();
 
+  // Modal de recuperación
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const response = await authService.login({ email, password });
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response));
+      localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN, response.token);
+      localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.USER, JSON.stringify(response));
       toast.success('¡Inicio de sesión exitoso!');
       navigate('/dashboard');
     } catch (err: any) {
@@ -44,6 +56,52 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      await authService.forgotPassword(forgotEmail);
+      toast.success(APP_CONSTANTS.MESSAGES.FORGOT_PASSWORD_SUCCESS);
+      setForgotStep(2);
+    } catch (err: any) {
+      toast.error('Error al intentar enviar el correo');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      toast.warn(APP_CONSTANTS.MESSAGES.PASSWORD_MISMATCH);
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.warn(APP_CONSTANTS.MESSAGES.PASSWORD_MIN_LENGTH);
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      await authService.resetPassword(forgotEmail, resetToken, newPassword);
+      toast.success(APP_CONSTANTS.MESSAGES.RESET_PASSWORD_SUCCESS);
+      closeForgotModal();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || APP_CONSTANTS.MESSAGES.RESET_PASSWORD_ERROR);
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const closeForgotModal = () => {
+    setShowForgotModal(false);
+    setForgotStep(1);
+    setForgotEmail('');
+    setResetToken('');
+    setNewPassword('');
+    setConfirmNewPassword('');
   };
 
   return (
@@ -217,6 +275,7 @@ const Login: React.FC = () => {
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <button
               type="button"
+              onClick={() => setShowForgotModal(true)}
               style={{
                 background: 'none', border: 'none',
                 color: '#2563eb', fontSize: 13, fontWeight: 500,
@@ -252,6 +311,164 @@ const Login: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: 32, width: '100%', maxWidth: 400,
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
+              {forgotStep === 1 ? APP_CONSTANTS.UI.FORGOT_PASSWORD_TITLE : APP_CONSTANTS.UI.RESET_PASSWORD_TITLE}
+            </h3>
+            <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 24px 0' }}>
+              {forgotStep === 1 ? APP_CONSTANTS.UI.FORGOT_PASSWORD_DESC : APP_CONSTANTS.UI.RESET_PASSWORD_DESC}
+            </p>
+            
+            {forgotStep === 1 ? (
+              <form onSubmit={handleForgotSubmit}>
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1',
+                      fontSize: 14, outline: 'none', boxSizing: 'border-box'
+                    }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={closeForgotModal}
+                    style={{
+                      padding: '10px 16px', background: '#f1f5f9', color: '#475569',
+                      border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer'
+                    }}
+                  >
+                    {APP_CONSTANTS.UI.CANCEL}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    style={{
+                      padding: '10px 16px', background: forgotLoading ? '#93c5fd' : '#2563eb', color: '#fff',
+                      border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: forgotLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {forgotLoading ? APP_CONSTANTS.UI.SAVING : APP_CONSTANTS.UI.SEND_CODE}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleResetSubmit}>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+                    {APP_CONSTANTS.UI.VERIFICATION_CODE}
+                  </label>
+                  <input
+                    type="text"
+                    value={resetToken}
+                    onChange={e => setResetToken(e.target.value)}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #cbd5e1',
+                      fontSize: 14, outline: 'none', boxSizing: 'border-box', letterSpacing: '2px'
+                    }}
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+                    {APP_CONSTANTS.UI.NEW_PASSWORD}
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showNewPwd ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      style={{
+                        width: '100%', padding: '10px 42px 10px 14px', borderRadius: 8, border: '1px solid #cbd5e1',
+                        fontSize: 14, outline: 'none', boxSizing: 'border-box'
+                      }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPwd(!showNewPwd)}
+                      style={{
+                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2
+                      }}
+                    >
+                      <EyeIcon open={showNewPwd} />
+                    </button>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+                    {APP_CONSTANTS.UI.CONFIRM_NEW_PASSWORD}
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showConfirmPwd ? 'text' : 'password'}
+                      value={confirmNewPassword}
+                      onChange={e => setConfirmNewPassword(e.target.value)}
+                      style={{
+                        width: '100%', padding: '10px 42px 10px 14px', borderRadius: 8, border: '1px solid #cbd5e1',
+                        fontSize: 14, outline: 'none', boxSizing: 'border-box'
+                      }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                      style={{
+                        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2
+                      }}
+                    >
+                      <EyeIcon open={showConfirmPwd} />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setForgotStep(1)}
+                    style={{
+                      padding: '10px 16px', background: '#f1f5f9', color: '#475569',
+                      border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer'
+                    }}
+                  >
+                    {APP_CONSTANTS.UI.CANCEL}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    style={{
+                      padding: '10px 16px', background: forgotLoading ? '#93c5fd' : '#2563eb', color: '#fff',
+                      border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: forgotLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {forgotLoading ? APP_CONSTANTS.UI.SAVING : APP_CONSTANTS.UI.UPDATE}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

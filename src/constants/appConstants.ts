@@ -22,6 +22,9 @@ export const APP_CONSTANTS = {
     PASSWORD_MIN_LENGTH: 'La nueva contraseña debe tener al menos 6 caracteres',
     PASSWORD_UPDATE_SUCCESS: 'Contraseña actualizada exitosamente',
     PASSWORD_UPDATE_ERROR: 'Error al cambiar la contraseña',
+    FORGOT_PASSWORD_SUCCESS: 'Si el correo existe, recibirás un código de recuperación.',
+    RESET_PASSWORD_SUCCESS: 'Contraseña restablecida exitosamente.',
+    RESET_PASSWORD_ERROR: 'El código es inválido o ha expirado.',
   },
   UI: {
     PROFILE_SETTINGS_TITLE: 'Configuración de Perfil',
@@ -42,5 +45,12 @@ export const APP_CONSTANTS = {
     CONFIRM_NEW_PASSWORD: 'Confirmar Nueva Contraseña',
     CANCEL: 'Cancelar',
     UPDATE: 'Actualizar',
+    FORGOT_PASSWORD_TITLE: 'Recuperar Contraseña',
+    FORGOT_PASSWORD_DESC: 'Ingresa tu correo para recibir un código de recuperación.',
+    RESET_PASSWORD_TITLE: 'Restablecer Contraseña',
+    RESET_PASSWORD_DESC: 'Ingresa el código que enviamos a tu correo y tu nueva contraseña.',
+    VERIFICATION_CODE: 'Código de Verificación',
+    SEND_CODE: 'Enviar Código',
+    BACK_TO_LOGIN: 'Volver al Inicio de Sesión',
   }
 };
