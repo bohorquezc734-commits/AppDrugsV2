@@ -1,4 +1,5 @@
 import api from './api';
+import { APP_CONSTANTS } from '../constants/appConstants';
 
 export interface LoginRequest {
   email: string;
@@ -32,23 +33,23 @@ export const authService = {
   },
 
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(APP_CONSTANTS.STORAGE_KEYS.USER);
     window.location.href = '/login';
   },
 
-  getToken: () => localStorage.getItem('token'),
+  getToken: () => localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN),
   
   getUser: () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.USER);
     return user ? JSON.parse(user) : null;
   },
 
-  isAuthenticated: () => !!localStorage.getItem('token'),
+  isAuthenticated: () => !!localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN),
 
   // 🔐 MÉTODOS DE ROLES
   getUserRole: () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.USER);
     if (user) {
       try {
         const parsed = JSON.parse(user);
@@ -61,15 +62,15 @@ export const authService = {
   },
 
   isAdmin: () => {
-    return authService.getUserRole() === 'Admin';
+    return authService.getUserRole() === APP_CONSTANTS.ROLES.ADMIN;
   },
 
   isPharmacist: () => {
-    return authService.getUserRole() === 'Pharmacist';
+    return authService.getUserRole() === APP_CONSTANTS.ROLES.PHARMACIST;
   },
 
   isUser: () => {
-    return authService.getUserRole() === 'User';
+    return authService.getUserRole() === APP_CONSTANTS.ROLES.USER;
   },
 
   hasRole: (role: string) => {
@@ -78,21 +79,31 @@ export const authService = {
 
   canEditDrugs: () => {
     const userRole = authService.getUserRole();
-    return userRole === 'Admin';
+    return userRole === APP_CONSTANTS.ROLES.ADMIN;
   },
 
   canManageSedes: () => {
     const userRole = authService.getUserRole();
-    return userRole === 'Admin';
+    return userRole === APP_CONSTANTS.ROLES.ADMIN;
   },
 
   canViewReports: () => {
     const userRole = authService.getUserRole();
-    return userRole === 'Admin' || userRole === 'Pharmacist';
+    return userRole === APP_CONSTANTS.ROLES.ADMIN || userRole === APP_CONSTANTS.ROLES.PHARMACIST;
   },
 
   canUpdateStock: () => {
     const userRole = authService.getUserRole();
-    return userRole === 'Admin' || userRole === 'Pharmacist';
+    return userRole === APP_CONSTANTS.ROLES.ADMIN || userRole === APP_CONSTANTS.ROLES.PHARMACIST;
   },
+
+  updateProfile: async (fullName: string) => {
+    const response = await api.put('/Auth/me/profile', { fullName });
+    return response.data;
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.put('/Auth/me/password', { currentPassword, newPassword });
+    return response.data;
+  }
 };
