@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Infrastructure.Persistence;
+using AppDrugsV2.Infrastructure.Services;
 using AppDrugsV2.Infrastructure.Services.Auth;
 using AppDrugsV2.Infrastructure.Services.Reports;
 
@@ -33,6 +34,7 @@ namespace AppDrugsV2.Infrastructure
 
             // Registrar servicios de reportes
             services.AddScoped<IExcelExportService, ExcelExportService>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

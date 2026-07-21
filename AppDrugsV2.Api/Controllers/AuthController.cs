@@ -41,6 +41,25 @@ namespace AppDrugsV2.Api.Controllers
             return Unauthorized(new { error = result.Error });
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+        {
+            var result = await _mediator.Send(command);
+            
+            // Siempre retornamos Ok para no revelar qué correos están registrados
+            return Ok(new { message = "Si el correo está registrado, se ha enviado un código de recuperación." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Contraseña restablecida exitosamente." });
+
+            return BadRequest(new { error = result.Error });
+        }
         [Authorize]
         [HttpPut("me/password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
