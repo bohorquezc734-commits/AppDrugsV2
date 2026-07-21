@@ -11,6 +11,9 @@ import { gestoresService, GestorDto } from '../services/gestores';
 import api from '../services/api';
 import { inventoriesService, InventoryDto } from '../services/inventories';
 import { toast } from 'react-toastify';
+import MainLayout from '../components/Layout/MainLayout';
+import type { AnyTab } from '../components/Layout/Sidebar';
+import Configuracion from '../components/Profile/Configuracion';
 
 interface CartItem {
   inventoryId: number;
@@ -18,7 +21,7 @@ interface CartItem {
   quantity: number;
 }
 
-type TabType = 'medicamentos' | 'nuevo-turno' | 'mis-turnos';
+type TabType = 'medicamentos' | 'nuevo-turno' | 'mis-turnos' | 'configuracion';
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: 'Recibido',   color: '#3b82f6' },
@@ -169,49 +172,27 @@ const UserDashboard: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    toast.info('Sesión cerrada');
+  // ─── UI ───────────────────────────────────────────────────────────────
+  const SECTION_LABELS: Record<TabType, string> = {
+    medicamentos: 'Catálogo',
+    'nuevo-turno': 'Agendar Turno',
+    'mis-turnos': 'Mis Turnos',
+    configuracion: 'Configuración de Perfil'
   };
 
-  // ─── UI ───────────────────────────────────────────────────────────────
-  const tabClass = (tab: TabType) =>
-    `px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-      activeTab === tab
-        ? 'bg-blue-600 text-white shadow'
-        : 'bg-white text-gray-600 hover:bg-blue-50 border border-gray-200'
-    }`;
-
   return (
-    <div style={{ minHeight: '100vh', background: '#f1f5f9' }}>
-      {/* Navbar */}
-      <nav style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 28 }}>💊</span>
-          <span style={{ fontWeight: 700, fontSize: 20, color: '#1e293b' }}>AppDrugsV2</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 14, color: '#64748b' }}>👤 {user?.fullName} (Afiliado)</span>
-          <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
-            Cerrar Sesión
-          </button>
-        </div>
-      </nav>
+    <MainLayout
+      activeTab={activeTab as AnyTab}
+      onTabChange={(tab) => setActiveTab(tab as TabType)}
+      role="user"
+      sectionLabel={SECTION_LABELS[activeTab]}
+    >
+      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px' }}>
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
-          <button className={tabClass('medicamentos')} onClick={() => setActiveTab('medicamentos')}>
-            💊 Medicamentos
-          </button>
-          <button className={tabClass('nuevo-turno')} onClick={() => setActiveTab('nuevo-turno')}
-            style={{ background: activeTab === 'nuevo-turno' ? '#2563eb' : undefined }}>
-            📋 Crear Turno
-          </button>
-          <button className={tabClass('mis-turnos')} onClick={() => setActiveTab('mis-turnos')}>
-            📁 Mis Turnos
-          </button>
-        </div>
+        {/* ── TAB: Configuracion ───────────────────────────────────────── */}
+        {activeTab === 'configuracion' && (
+          <Configuracion />
+        )}
 
         {/* ── TAB: Medicamentos ───────────────────────────────────────── */}
         {activeTab === 'medicamentos' && (
@@ -472,7 +453,7 @@ const UserDashboard: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
