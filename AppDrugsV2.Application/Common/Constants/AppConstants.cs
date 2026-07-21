@@ -109,12 +109,16 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string InventoryUpdated     = "Inventario actualizado exitosamente";
             public const string InventoryDeleted     = "Inventario eliminado exitosamente";
             public const string AppointmentUpdated   = "Estado del turno actualizado exitosamente.";
+            public const string PasswordChanged      = "Contraseña actualizada exitosamente.";
+            public const string ProfileUpdated       = "Perfil actualizado exitosamente.";
 
             // Error
             public const string IdMismatch              = "El ID en la URL no coincide con el ID en el cuerpo.";
             public const string EmailAlreadyRegistered  = "El email ya está registrado";
             public const string NotFoundKeyword         = "no encontrado";
             public const string NotExistsKeyword        = "no existe";
+            public const string UserNotFound            = "Usuario no encontrado.";
+            public const string CurrentPasswordIncorrect = "La contraseña actual es incorrecta.";
 
             // Validación
             public const string EmailRequired        = "Email es requerido";
