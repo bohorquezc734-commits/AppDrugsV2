@@ -9,14 +9,84 @@ import { toast } from 'react-toastify';
 import { reportsService, downloadFile } from '../services/reports';
 import ReportModal from '../components/Reports/ReportModal';
 import api from '../services/api';
+import MainLayout from '../components/Layout/MainLayout';
+import type { AnyTab } from '../components/Layout/Sidebar';
+import Configuracion from '../components/Profile/Configuracion';
 
-type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes';
+type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion';
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: 'Recibido', color: '#3b82f6' },
   2: { label: 'En Proceso', color: '#f59e0b' },
   3: { label: 'Entregado', color: '#10b981' },
   4: { label: 'Cancelado', color: '#ef4444' },
+};
+
+/* ─── Custom Dialog Component ──────────────────────── */
+interface DialogProps {
+  isOpen: boolean;
+  title: string;
+  message?: string;
+  icon?: React.ReactNode;
+  iconBg?: string;
+  children?: React.ReactNode;
+  confirmLabel?: string;
+  confirmColor?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const CustomDialog: React.FC<DialogProps> = ({
+  isOpen, title, message, icon, iconBg, children,
+  confirmLabel = 'Confirmar', confirmColor = '#2563eb',
+  cancelLabel = 'Cancelar', onConfirm, onCancel,
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(15,23,42,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 20, backdropFilter: 'blur(4px)',
+    }} onClick={onCancel}>
+      <div style={{
+        background: '#fff', borderRadius: 18, padding: '28px 28px 24px',
+        maxWidth: 400, width: '100%',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+        animation: 'dialogIn 0.2s ease',
+      }} onClick={e => e.stopPropagation()}>
+        {icon && (
+          <div style={{
+            width: 52, height: 52, borderRadius: 14,
+            background: iconBg || '#eff6ff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px', fontSize: 24,
+          }}>{icon}</div>
+        )}
+        <h3 style={{ fontWeight: 700, fontSize: 17, color: '#1e293b', textAlign: 'center', marginBottom: message ? 8 : 16 }}>
+          {title}
+        </h3>
+        {message && (
+          <p style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
+            {message}
+          </p>
+        )}
+        {children && <div style={{ marginBottom: 20 }}>{children}</div>}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: '10px', borderRadius: 10, border: '1.5px solid #e2e8f0',
+            background: '#f8fafc', color: '#475569', fontWeight: 600, fontSize: 14, cursor: 'pointer',
+          }}>{cancelLabel}</button>
+          <button onClick={onConfirm} style={{
+            flex: 1, padding: '10px', borderRadius: 10, border: 'none',
+            background: confirmColor, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+            boxShadow: `0 4px 12px ${confirmColor}55`,
+          }}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const Dashboard: React.FC = () => {
@@ -139,6 +209,24 @@ const Dashboard: React.FC = () => {
   const [showCreateInvModal, setShowCreateInvModal] = useState(false);
   const [invForm, setInvForm] = useState({ drugId: 0, gestorFarmaceuticoId: 0, quantity: 0 });
 
+  // Modal: stock
+  const [stockModal, setStockModal] = useState<{ open: boolean; type: 'add' | 'remove'; invId: number; drugName: string }>({
+    open: false, type: 'add', invId: 0, drugName: '',
+  });
+  const [stockQty, setStockQty] = useState<string>('1');
+  const [stockFocus, setStockFocus] = useState(false);
+
+  // Modal: delete inventory confirm
+  const [deleteInvModal, setDeleteInvModal] = useState<{ open: boolean; invId: number; drugName: string }>({
+    open: false, invId: 0, drugName: '',
+  });
+
+  // Modal: change status
+  const [statusModal, setStatusModal] = useState<{ open: boolean; aptId: number; current: number }>({
+    open: false, aptId: 0, current: 1,
+  });
+  const [newStatus, setNewStatus] = useState<number>(1);
+
   const loadInventories = useCallback(async () => {
     try {
       setLoadingInventories(true);
@@ -167,31 +255,32 @@ const Dashboard: React.FC = () => {
     } catch { toast.error('Error al crear inventario'); }
   };
 
-  const handleAddStock = async (id: number) => {
-    const q = prompt('¿Cuántas unidades agregar?');
-    if (!q || isNaN(Number(q))) return;
-    try {
-      await inventoriesService.addStock(id, Number(q));
-      toast.success('Stock agregado');
-      loadInventories();
-    } catch { toast.error('Error al agregar stock'); }
+  const openStockModal = (type: 'add' | 'remove', inv: InventoryDto) => {
+    setStockQty('1');
+    setStockModal({ open: true, type, invId: inv.id, drugName: inv.drugName });
   };
 
-  const handleRemoveStock = async (id: number) => {
-    const q = prompt('¿Cuántas unidades retirar?');
-    if (!q || isNaN(Number(q))) return;
+  const confirmStock = async () => {
+    const q = Number(stockQty);
+    if (!stockQty || isNaN(q) || q <= 0) { toast.warn('Ingresa una cantidad válida'); return; }
     try {
-      await inventoriesService.removeStock(id, Number(q));
-      toast.success('Stock retirado');
+      if (stockModal.type === 'add') {
+        await inventoriesService.addStock(stockModal.invId, q);
+        toast.success('Stock agregado exitosamente');
+      } else {
+        await inventoriesService.removeStock(stockModal.invId, q);
+        toast.success('Stock retirado exitosamente');
+      }
+      setStockModal(s => ({ ...s, open: false }));
       loadInventories();
-    } catch { toast.error('Error al retirar stock'); }
+    } catch { toast.error(stockModal.type === 'add' ? 'Error al agregar stock' : 'Error al retirar stock'); }
   };
 
-  const handleDeleteInventory = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de eliminar este registro de inventario?')) return;
+  const confirmDeleteInventory = async () => {
     try {
-      await inventoriesService.delete(id);
+      await inventoriesService.delete(deleteInvModal.invId);
       toast.success('Inventario eliminado');
+      setDeleteInvModal(s => ({ ...s, open: false }));
       loadInventories();
     } catch { toast.error('Error al eliminar inventario'); }
   };
@@ -215,18 +304,19 @@ const Dashboard: React.FC = () => {
     if (activeTab === 'turnos') loadAppointments();
   }, [activeTab, loadAppointments]);
 
-  const handleChangeStatus = async (id: number, currentStatus: number) => {
-    const newStatusStr = prompt('Nuevo estado (1=Recibido, 2=En Proceso, 3=Entregado, 4=Cancelado):', currentStatus.toString());
-    if (!newStatusStr) return;
-    const newStatus = Number(newStatusStr);
-    if (![1,2,3,4].includes(newStatus)) {
-      toast.warn('Estado inválido'); return;
-    }
+  const openStatusModal = (id: number, current: number) => {
+    setNewStatus(current);
+    setStatusModal({ open: true, aptId: id, current });
+  };
+
+  const confirmChangeStatus = async () => {
+    if (![1,2,3,4].includes(newStatus)) { toast.warn('Estado inválido'); return; }
     try {
-      await appointmentsService.updateStatus(id, newStatus);
+      await appointmentsService.updateStatus(statusModal.aptId, newStatus);
       toast.success('Estado actualizado');
+      setStatusModal(s => ({ ...s, open: false }));
       loadAppointments();
-    } catch { toast.error('Error al actualizar estado'); }
+    } catch { toast.error('Error al actualizar estado');  }
   };
 
   // ==========================================
@@ -272,38 +362,30 @@ const Dashboard: React.FC = () => {
   // ==========================================
   // UI HELPERS
   // ==========================================
-  const tabClass = (tab: TabType) =>
-    `px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-      activeTab === tab
-        ? 'bg-blue-600 text-white shadow'
-        : 'bg-white text-gray-600 hover:bg-blue-50 border border-gray-200'
-    }`;
+  const SECTION_LABELS: Record<TabType, string> = {
+    medicamentos: 'Catálogo de Medicamentos',
+    sedes: 'Gestión de Sedes',
+    inventarios: 'Inventario de Medicamentos',
+    turnos: 'Gestión de Turnos',
+    reportes: 'Reportes del Sistema',
+    configuracion: 'Configuración de Perfil'
+  };
 
-  const handleLogout = () => { authService.logout(); toast.info('Sesión cerrada'); };
+  const role = isAdmin ? 'admin' : isPharmacist ? 'pharmacist' : 'user';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f1f5f9' }}>
-      <nav style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 28 }}>💊</span>
-          <span style={{ fontWeight: 700, fontSize: 20, color: '#1e293b' }}>AppDrugsV2 (Panel Admin)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 14, color: '#64748b' }}>👤 {user?.fullName} ({user?.role})</span>
-          <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
-            Cerrar Sesión
-          </button>
-        </div>
-      </nav>
+    <MainLayout
+      activeTab={activeTab as AnyTab}
+      onTabChange={(tab) => setActiveTab(tab as TabType)}
+      role={role}
+      sectionLabel={SECTION_LABELS[activeTab]}
+    >
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px' }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
-          <button className={tabClass('medicamentos')} onClick={() => setActiveTab('medicamentos')}>💊 Medicamentos</button>
-          {isAdmin && <button className={tabClass('sedes')} onClick={() => setActiveTab('sedes')}>🏪 Sedes (Gestores)</button>}
-          <button className={tabClass('inventarios')} onClick={() => setActiveTab('inventarios')}>📦 Inventarios</button>
-          <button className={tabClass('turnos')} onClick={() => setActiveTab('turnos')}>📋 Turnos</button>
-          <button className={tabClass('reportes')} onClick={() => setActiveTab('reportes')}>📊 Reportes</button>
-        </div>
+        {/* ── TAB: Configuracion ───────────────────────────────────────── */}
+        {activeTab === 'configuracion' && (
+          <Configuracion />
+        )}
 
         {/* ── TAB: Medicamentos ───────────────────────────────────────── */}
         {activeTab === 'medicamentos' && (
@@ -406,9 +488,9 @@ const Dashboard: React.FC = () => {
                         <td className="p-4 font-semibold">{inv.drugName}</td>
                         <td className="p-4 text-blue-600 font-bold">{inv.quantity}</td>
                         <td className="p-4 flex gap-2">
-                          <button onClick={() => handleAddStock(inv.id)} className="bg-green-100 text-green-700 px-2 py-1 rounded">+ Stock</button>
-                          <button onClick={() => handleRemoveStock(inv.id)} className="bg-red-100 text-red-700 px-2 py-1 rounded">- Stock</button>
-                          {isAdmin && <button onClick={() => handleDeleteInventory(inv.id)} className="bg-gray-200 text-gray-700 px-2 py-1 rounded">Eliminar</button>}
+                           <button onClick={() => openStockModal('add', inv)} style={{ background:'#dcfce7', color:'#15803d', border:'none', borderRadius:6, padding:'4px 10px', fontSize:13, fontWeight:600, cursor:'pointer' }}>+ Stock</button>
+                           <button onClick={() => openStockModal('remove', inv)} style={{ background:'#fee2e2', color:'#dc2626', border:'none', borderRadius:6, padding:'4px 10px', fontSize:13, fontWeight:600, cursor:'pointer' }}>- Stock</button>
+                           {isAdmin && <button onClick={() => setDeleteInvModal({ open: true, invId: inv.id, drugName: inv.drugName })} style={{ background:'#f1f5f9', color:'#475569', border:'none', borderRadius:6, padding:'4px 10px', fontSize:13, fontWeight:600, cursor:'pointer' }}>Eliminar</button>}
                         </td>
                       </tr>
                     ))}
@@ -442,7 +524,7 @@ const Dashboard: React.FC = () => {
                           <span className="px-3 py-1 rounded-full text-sm font-bold text-white" style={{ background: statusInfo.color }}>
                             {statusInfo.label}
                           </span>
-                          <button onClick={() => handleChangeStatus(apt.id, apt.status)} className="block mt-2 text-sm text-blue-600 underline">
+                          <button onClick={() => openStatusModal(apt.id, apt.status)} style={{ display:'block', marginTop:8, background:'none', border:'none', fontSize:13, color:'#2563eb', cursor:'pointer', fontWeight:600, textDecoration:'underline' }}>
                             Cambiar Estado
                           </button>
                         </div>
@@ -473,6 +555,85 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── MODAL: Stock (agregar / retirar) ──── */}
+      <CustomDialog
+        isOpen={stockModal.open}
+        title={stockModal.type === 'add' ? 'Agregar Stock' : 'Retirar Stock'}
+        message={`Medicamento: ${stockModal.drugName}`}
+        icon={stockModal.type === 'add' ? '📦' : '📤'}
+        iconBg={stockModal.type === 'add' ? '#dcfce7' : '#fee2e2'}
+        confirmLabel={stockModal.type === 'add' ? 'Agregar' : 'Retirar'}
+        confirmColor={stockModal.type === 'add' ? '#16a34a' : '#dc2626'}
+        onConfirm={confirmStock}
+        onCancel={() => setStockModal(s => ({ ...s, open: false }))}
+      >
+        <div>
+          <label style={{ display:'block', fontSize:13, fontWeight:600, color:'#374151', marginBottom:6 }}>
+            {stockModal.type === 'add' ? 'Unidades a agregar' : 'Unidades a retirar'} <span style={{ color:'#ef4444' }}>*</span>
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={stockQty}
+            onChange={e => setStockQty(e.target.value)}
+            onFocus={() => setStockFocus(true)}
+            onBlur={() => setStockFocus(false)}
+            autoFocus
+            style={{
+              width:'100%', padding:'10px 14px', borderRadius:10,
+              border: `1.5px solid ${stockFocus ? '#2563eb' : '#e2e8f0'}`,
+              fontSize:15, color:'#1e293b', outline:'none',
+              background: stockFocus ? '#f8fbff' : '#f9fafb',
+              boxShadow: stockFocus ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
+              transition:'all 0.2s', boxSizing:'border-box' as any,
+            }}
+            onKeyDown={e => e.key === 'Enter' && confirmStock()}
+          />
+        </div>
+      </CustomDialog>
+
+      {/* ── MODAL: Confirmar eliminación inventario ── */}
+      <CustomDialog
+        isOpen={deleteInvModal.open}
+        title="Eliminar inventario"
+        message={`¿Estás seguro de eliminar el inventario de "${deleteInvModal.drugName}"? Esta acción no se puede deshacer.`}
+        icon="🗑️"
+        iconBg="#fee2e2"
+        confirmLabel="Sí, eliminar"
+        confirmColor="#dc2626"
+        onConfirm={confirmDeleteInventory}
+        onCancel={() => setDeleteInvModal(s => ({ ...s, open: false }))}
+      />
+
+      {/* ── MODAL: Cambiar estado turno ──── */}
+      <CustomDialog
+        isOpen={statusModal.open}
+        title="Cambiar estado del turno"
+        icon="📋"
+        iconBg="#eff6ff"
+        confirmLabel="Actualizar"
+        confirmColor="#2563eb"
+        onConfirm={confirmChangeStatus}
+        onCancel={() => setStatusModal(s => ({ ...s, open: false }))}
+      >
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          {[{v:1,l:'Recibido',c:'#3b82f6'},{v:2,l:'En Proceso',c:'#f59e0b'},{v:3,l:'Entregado',c:'#10b981'},{v:4,l:'Cancelado',c:'#ef4444'}].map(opt => (
+            <button key={opt.v} onClick={() => setNewStatus(opt.v)} style={{
+              padding:'10px 14px', borderRadius:10, border:'none', cursor:'pointer',
+              background: newStatus === opt.v ? opt.c + '18' : '#f8fafc',
+              color: newStatus === opt.v ? opt.c : '#475569',
+              fontWeight: newStatus === opt.v ? 700 : 500,
+              fontSize:14, textAlign:'left', display:'flex', alignItems:'center', gap:8,
+              outline: newStatus === opt.v ? `2px solid ${opt.c}` : '2px solid transparent',
+              transition:'all 0.15s',
+            }}>
+              <span style={{ width:10, height:10, borderRadius:'50%', background:opt.c, flexShrink:0 }} />
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      </CustomDialog>
 
       {/* MODALS PARA MEDICAMENTOS */}
       {showCreateDrugModal && (
@@ -574,7 +735,7 @@ const Dashboard: React.FC = () => {
         onResetFilters={() => { setReportFilters({}); toast.info('Filtros restablecidos'); }}
         sedes={gestores}
       />
-    </div>
+    </MainLayout>
   );
 };
 
