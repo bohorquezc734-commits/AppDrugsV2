@@ -1,0 +1,46 @@
+export const APP_CONSTANTS = {
+  ROLES: {
+    ADMIN: 'Admin',
+    PHARMACIST: 'Pharmacist',
+    USER: 'User',
+  },
+  ROLE_NAMES: {
+    ADMIN: 'Administrador',
+    PHARMACIST: 'Gestor Farmacéutico',
+    USER: 'Afiliado',
+  },
+  STORAGE_KEYS: {
+    TOKEN: 'token',
+    USER: 'user',
+  },
+  MESSAGES: {
+    PROFILE_NAME_EMPTY: 'El nombre no puede estar vacío',
+    PROFILE_UPDATE_SUCCESS: 'Perfil actualizado exitosamente',
+    PROFILE_UPDATE_ERROR: 'Error al actualizar el perfil',
+    PASSWORD_FIELDS_EMPTY: 'Por favor llena todos los campos',
+    PASSWORD_MISMATCH: 'La nueva contraseña y la confirmación no coinciden',
+    PASSWORD_MIN_LENGTH: 'La nueva contraseña debe tener al menos 6 caracteres',
+    PASSWORD_UPDATE_SUCCESS: 'Contraseña actualizada exitosamente',
+    PASSWORD_UPDATE_ERROR: 'Error al cambiar la contraseña',
+  },
+  UI: {
+    PROFILE_SETTINGS_TITLE: 'Configuración de Perfil',
+    NAME_NOT_AVAILABLE: 'Nombre no disponible',
+    EMAIL_NOT_AVAILABLE: 'Email no disponible',
+    ACCOUNT_INFO: 'Información de la Cuenta',
+    FULL_NAME: 'Nombre Completo',
+    EMAIL_READONLY: 'Correo Electrónico (No modificable)',
+    SAVING: 'Guardando...',
+    SAVE_CHANGES: 'Guardar Cambios',
+    SECURITY: 'Seguridad',
+    SECURITY_DESC: 'Si crees que tu cuenta ha sido comprometida, puedes cambiar tu contraseña.',
+    CHANGE_PASSWORD_BTN: '🔒 Cambiar Contraseña',
+    CHANGE_PASSWORD_TITLE: 'Cambiar Contraseña',
+    CHANGE_PASSWORD_DESC: 'Ingresa tu contraseña actual y la nueva contraseña que deseas usar.',
+    CURRENT_PASSWORD: 'Contraseña Actual',
+    NEW_PASSWORD: 'Nueva Contraseña',
+    CONFIRM_NEW_PASSWORD: 'Confirmar Nueva Contraseña',
+    CANCEL: 'Cancelar',
+    UPDATE: 'Actualizar',
+  }
+};
