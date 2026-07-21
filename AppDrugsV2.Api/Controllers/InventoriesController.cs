@@ -66,7 +66,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.InventoryUpdated });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -81,7 +81,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.InventoryDeleted });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -99,7 +99,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.StockAdded });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -117,7 +117,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.StockRemoved });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
