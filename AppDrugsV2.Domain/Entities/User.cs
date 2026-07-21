@@ -1,4 +1,4 @@
-﻿using AppDrugsV2.Domain.Enums;
+using AppDrugsV2.Domain.Enums;
 
 namespace AppDrugsV2.Domain.Entities
 {
@@ -12,6 +12,8 @@ namespace AppDrugsV2.Domain.Entities
         public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? LastLoginAt { get; private set; }
+        public string? ResetPasswordToken { get; private set; }
+        public DateTime? ResetPasswordTokenExpiresAt { get; private set; }
 
         // Constructor privado para EF Core (con valores por defecto)
         private User()
@@ -59,5 +61,17 @@ namespace AppDrugsV2.Domain.Entities
         public void RecordLogin() => LastLoginAt = DateTime.UtcNow;
         public void Deactivate() => IsActive = false;
         public void Activate() => IsActive = true;
+
+        public void SetResetPasswordToken(string token, DateTime expiresAt)
+        {
+            ResetPasswordToken = token;
+            ResetPasswordTokenExpiresAt = expiresAt;
+        }
+
+        public void ClearResetPasswordToken()
+        {
+            ResetPasswordToken = null;
+            ResetPasswordTokenExpiresAt = null;
+        }
     }
 }
