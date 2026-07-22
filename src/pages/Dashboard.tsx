@@ -316,7 +316,12 @@ const Dashboard: React.FC = () => {
       toast.success('Estado actualizado');
       setStatusModal(s => ({ ...s, open: false }));
       loadAppointments();
-    } catch { toast.error('Error al actualizar estado');  }
+    } catch (err: any) {
+      const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message || 'Error desconocido';
+      const status = err?.response?.status;
+      console.error('[updateStatus] Error:', status, serverMsg, err?.response?.data);
+      toast.error(`Error al actualizar estado (${status ?? 'sin respuesta'}): ${typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)}`);
+    }
   };
 
   // ==========================================
