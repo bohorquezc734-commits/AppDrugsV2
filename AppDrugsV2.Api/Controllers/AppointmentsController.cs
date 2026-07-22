@@ -93,5 +93,30 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+
+        // ─── GENERACIÓN DE QR ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Genera (o regenera) el código QR del turno especificado.
+        /// Persiste el QR en la base de datos y notifica al usuario
+        /// en tiempo real via SignalR (evento "QrReady").
+        /// </summary>
+        /// <param name="id">ID del turno.</param>
+        /// <returns>200 con el QR en Base64 | 404 si el turno no existe | 400 si hay un error de validación.</returns>
+        [HttpPost("{id}/qr")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
+        public async Task<IActionResult> GenerateQr(int id)
+        {
+            var command = new GenerateAppointmentQrCommand { AppointmentId = id };
+            var result  = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { appointmentId = id, qrBase64 = result.Value });
+
+            if (result.Error != null && result.Error.Contains(AppConstants.Messages.NotExistsKeyword))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
     }
-}
+}

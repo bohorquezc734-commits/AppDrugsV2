@@ -1,4 +1,4 @@
-﻿using AppDrugsV2.Domain.Enums;
+using AppDrugsV2.Domain.Enums;
 
 namespace AppDrugsV2.Domain.Entities
 {
@@ -15,6 +15,12 @@ namespace AppDrugsV2.Domain.Entities
         public DateTime? FechaEntrega { get; private set; }
         public bool IsActive { get; private set; }
         public string? Observaciones { get; private set; }
+
+        /// <summary>
+        /// Código QR del turno en formato Base64 (generado por el caso de uso GenerateAppointmentQr).
+        /// Nulo hasta que se genera por primera vez.
+        /// </summary>
+        public string? QrCodeBase64 { get; private set; }
 
         // Propiedades de navegación (para EF)
         public virtual User? User { get; private set; }
@@ -87,6 +93,18 @@ namespace AppDrugsV2.Domain.Entities
         public void Activate()
         {
             IsActive = true;
+        }
+
+        /// <summary>
+        /// Asigna el código QR (Base64) generado externamente.
+        /// Solo el propio agregado puede mutar esta propiedad.
+        /// </summary>
+        public void AssignQrCode(string qrBase64)
+        {
+            if (string.IsNullOrWhiteSpace(qrBase64))
+                throw new ArgumentException("El contenido del código QR no puede estar vacío.", nameof(qrBase64));
+
+            QrCodeBase64 = qrBase64;
         }
     }
 }
