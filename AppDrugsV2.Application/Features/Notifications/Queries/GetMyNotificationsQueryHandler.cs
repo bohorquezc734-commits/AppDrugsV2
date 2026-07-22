@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
+using AppDrugsV2.Application.Common.Constants;
 
 namespace AppDrugsV2.Application.Features.Notifications.Queries
 {
@@ -20,7 +21,7 @@ namespace AppDrugsV2.Application.Features.Notifications.Queries
         {
             if (_currentUserService.UserId == null)
             {
-                return Result<List<NotificationDto>>.Failure("User is not authenticated");
+                return Result<List<NotificationDto>>.Failure(AppConstants.Messages.UserNotAuthenticatedEn);
             }
 
             var userId = _currentUserService.UserId.Value;
@@ -28,7 +29,7 @@ namespace AppDrugsV2.Application.Features.Notifications.Queries
             var notifications = await _context.Notifications
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
-                .Take(20) // Get the latest 20 notifications
+                .Take(AppConstants.Pagination.NotificationsPageSize) // Get the latest notifications
                 .Select(n => new NotificationDto
                 {
                     Id = n.Id,

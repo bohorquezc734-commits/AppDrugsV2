@@ -23,17 +23,20 @@ namespace AppDrugsV2.Application.Common.Constants
         // ─── JWT ──────────────────────────────────────────────────────────────────
         public static class Jwt
         {
-            public const string SectionName       = "JwtSettings";
-            public const string SecretKey         = "Secret";
-            public const string IssuerKey         = "Issuer";
-            public const string AudienceKey       = "Audience";
-            public const string DefaultIssuer     = "AppDrugsV2";
-            public const string DefaultAudience   = "AppDrugsV2Client";
-            public const string BearerScheme      = "Bearer";
+            public const string SectionName         = "JwtSettings";
+            public const string SecretKey           = "Secret";
+            public const string IssuerKey           = "Issuer";
+            public const string AudienceKey         = "Audience";
+            public const string DefaultIssuer       = "AppDrugsV2";
+            public const string DefaultAudience     = "AppDrugsV2Client";
+            public const string BearerScheme        = "Bearer";
             public const string AuthorizationHeader = "Authorization";
-            public const string BearerDescription =
+            public const string BearerDescription   =
                 "JWT Authorization header usando el esquema Bearer. Ejemplo: \"Authorization: Bearer {token}\"";
             public const string ErrorJwtNotConfigured = "JWT Secret no configurado";
+
+            /// <summary>Horas de validez del token JWT.</summary>
+            public const int TokenExpirationHours = 1;
         }
 
         // ─── CORS ─────────────────────────────────────────────────────────────────
@@ -96,6 +99,13 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string RegexDigit     = "[0-9]";
         }
 
+        // ─── PAGINACIÓN ────────────────────────────────────────────────────────────────
+        public static class Pagination
+        {
+            /// <summary>Máximo de notificaciones devueltas por consulta.</summary>
+            public const int NotificationsPageSize = 20;
+        }
+
         // ─── MENSAJES DE RESPUESTA ────────────────────────────────────────────────
         public static class Messages
         {
@@ -112,13 +122,24 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string PasswordChanged      = "Contraseña actualizada exitosamente.";
             public const string ProfileUpdated       = "Perfil actualizado exitosamente.";
 
-            // Error
+            // Error — autenticación / sesión
+            public const string UserNotAuthenticated    = "Usuario no autenticado.";
+            public const string UserNotAuthenticatedEn = "User is not authenticated";
+            public const string InvalidCredentials      = "Credenciales inválidas";
+            public const string UserDeactivated         = "Usuario desactivado";
+            public const string InvalidResetToken       = "El código de recuperación es inválido o ha expirado.";
+            public const string InvalidAppointmentStatus = "Estado inválido para esta operación.";
+            public const string DefaultCancellationReason = "Cancelado por el gestor.";
+
+            // Error — entidades no encontradas
             public const string IdMismatch              = "El ID en la URL no coincide con el ID en el cuerpo.";
             public const string EmailAlreadyRegistered  = "El email ya está registrado";
             public const string NotFoundKeyword         = "no encontrado";
             public const string NotExistsKeyword        = "no existe";
             public const string UserNotFound            = "Usuario no encontrado.";
+            public const string NotificationNotFound    = "Notification not found";
             public const string CurrentPasswordIncorrect = "La contraseña actual es incorrecta.";
+            public const string DuplicateInventory      = "Ya existe un inventario para este medicamento en esta sede";
 
             // Validación
             public const string EmailRequired        = "Email es requerido";
@@ -132,6 +153,16 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string FullNameRequired     = "Nombre completo es requerido";
             public const string FullNameMaxLengthMsg = "Nombre no debe exceder 100 caracteres";
             public const string RoleInvalid          = "Rol inválido. Debe ser User, Pharmacist o Admin";
+        }
+
+        // ─── NOTIFICACIONES (mensajes al usuario) ─────────────────────────────────
+        public static class NotificationMessages
+        {
+            public const string AppointmentRecibido  = "📋 Tu turno #{0} ha sido actualizado al estado: Recibido.";
+            public const string AppointmentEnProceso = "⚙️ Tu turno #{0} está En Proceso. Pronto estará listo.";
+            public const string AppointmentEntregado = "✅ Tu turno #{0} ha sido Entregado exitosamente. ¡Gracias!";
+            public const string AppointmentCancelado = "❌ Tu turno #{0} fue Cancelado. Motivo: {1}";
+            public const string AppointmentCreado    = "✅ Tu turno #{0} en {1} fue registrado exitosamente. Estado: Recibido.";
         }
 
         // ─── CLAIMS ───────────────────────────────────────────────────────────────

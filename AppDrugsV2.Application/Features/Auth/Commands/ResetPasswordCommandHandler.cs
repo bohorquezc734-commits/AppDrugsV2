@@ -31,7 +31,7 @@ namespace AppDrugsV2.Application.Features.Auth.Commands
                 !user.ResetPasswordTokenExpiresAt.HasValue || 
                 user.ResetPasswordTokenExpiresAt.Value < DateTime.UtcNow)
             {
-                return Result<bool>.Failure("El código de recuperación es inválido o ha expirado.");
+                return Result<bool>.Failure(AppConstants.Messages.InvalidResetToken);
             }
 
             user.UpdatePassword(_passwordHasher.Hash(request.NewPassword));

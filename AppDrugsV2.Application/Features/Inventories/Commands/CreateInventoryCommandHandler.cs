@@ -1,7 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Domain.Entities;
 
 namespace AppDrugsV2.Application.Features.Inventories.Commands
@@ -32,7 +33,7 @@ namespace AppDrugsV2.Application.Features.Inventories.Commands
                 .FirstOrDefaultAsync(i => i.DrugId == request.DrugId && i.GestorFarmaceuticoId == request.GestorFarmaceuticoId, cancellationToken);
 
             if (existingInventory != null)
-                return Result<int>.Failure("Ya existe un inventario para este medicamento en esta sede");
+                return Result<int>.Failure(AppConstants.Messages.DuplicateInventory);
 
             try
             {
