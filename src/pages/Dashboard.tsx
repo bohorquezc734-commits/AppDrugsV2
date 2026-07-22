@@ -12,6 +12,7 @@ import api from '../services/api';
 import MainLayout from '../components/Layout/MainLayout';
 import type { AnyTab } from '../components/Layout/Sidebar';
 import Configuracion from '../components/Profile/Configuracion';
+import { useDrugiStore } from '../store/useDrugiStore';
 
 type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion';
 
@@ -93,6 +94,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const user = authService.getUser();
   const [activeTab, setActiveTab] = useState<TabType>('medicamentos');
+  const { showMessage } = useDrugiStore();
 
   // Permisos
   const isAdmin = authService.isAdmin();
@@ -144,6 +146,7 @@ const Dashboard: React.FC = () => {
     try {
       await drugsService.create(drugForm);
       toast.success('Medicamento creado exitosamente');
+      showMessage('¡Excelente! El nuevo medicamento ya está en el catálogo. 💊', 'feliz');
       setShowCreateDrugModal(false);
       loadDrugs(1);
     } catch { toast.error('Error al crear medicamento'); }
@@ -314,6 +317,7 @@ const Dashboard: React.FC = () => {
     try {
       await appointmentsService.updateStatus(statusModal.aptId, newStatus);
       toast.success('Estado actualizado');
+      showMessage(`¡Listo! El turno #${statusModal.aptId} ha sido actualizado correctamente. 👍`, 'feliz');
       setStatusModal(s => ({ ...s, open: false }));
       loadAppointments();
     } catch (err: any) {
@@ -360,7 +364,16 @@ const Dashboard: React.FC = () => {
       }
       downloadFile(data, fileName);
       toast.success('Reporte descargado');
-    } catch { toast.error('Error al descargar reporte'); }
+    } catch (err: any) {
+      let serverMsg = err?.message || 'Error desconocido';
+      if (err?.response?.data instanceof Blob) {
+        serverMsg = await err.response.data.text();
+      } else if (err?.response?.data) {
+        serverMsg = err.response.data.message || err.response.data;
+      }
+      console.error('[handleExportReport] Error:', err?.response?.status, serverMsg);
+      toast.error(`Error al descargar reporte: ${typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)}`);
+    }
     finally { setReportLoading(false); }
   };
 
