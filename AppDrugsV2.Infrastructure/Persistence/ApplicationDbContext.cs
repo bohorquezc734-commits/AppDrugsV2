@@ -1,4 +1,4 @@
-﻿using AppDrugsV2.Application.Common.Interfaces;
+using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -20,6 +20,7 @@ namespace AppDrugsV2.Infrastructure.Persistence
 
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<AppointmentDetail> AppointmentDetails { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

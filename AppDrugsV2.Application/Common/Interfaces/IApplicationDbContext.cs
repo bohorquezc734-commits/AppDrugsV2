@@ -10,6 +10,7 @@ namespace AppDrugsV2.Application.Common.Interfaces
         DbSet<GestorFarmaceutico> GestoresFarmaceuticos { get; } 
         DbSet<Inventory> Inventories { get; }
         DbSet<Appointment> Appointments { get; }
+        DbSet<Notification> Notifications { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
