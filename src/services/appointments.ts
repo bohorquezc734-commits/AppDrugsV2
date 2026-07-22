@@ -68,8 +68,9 @@ export const appointmentsService = {
   },
 
   // Actualizar estado del turno (Admin/Pharmacist)
+  // El backend espera: { AppointmentId, NewStatus } (UpdateAppointmentStatusCommand)
   updateStatus: async (id: number, status: number) => {
-    const response = await api.patch(`/Appointments/${id}/status`, { appointmentId: id, status });
+    const response = await api.patch(`/Appointments/${id}/status`, { appointmentId: id, newStatus: status });
     return response.data;
   },
 };
