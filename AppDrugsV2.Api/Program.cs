@@ -6,6 +6,7 @@ using System.Text;
 using AppDrugsV2.Application;
 using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Infrastructure;
+using AppDrugsV2.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,5 +98,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// ── SignalR Hub ───────────────────────────────────────────────────
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
