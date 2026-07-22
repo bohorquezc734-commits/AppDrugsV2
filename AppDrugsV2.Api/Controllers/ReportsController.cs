@@ -59,6 +59,8 @@ namespace AppDrugsV2.Api.Controllers
             [FromQuery] string?   status,
             [FromQuery] int?      gestorId)
         {
+            try
+            {
             var data = await _mediator.Send(new GetAppointmentsReportQuery
             {
                 DateFrom             = dateFrom,
@@ -81,6 +83,11 @@ namespace AppDrugsV2.Api.Controllers
                     AppConstants.Rotativa.MarginRight),
                 CustomSwitches = AppConstants.Rotativa.DisableSmartShrinking
             };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.ToString());
+            }
         }
 
         // ─── INVENTARIO ───────────────────────────────────────────────────────────

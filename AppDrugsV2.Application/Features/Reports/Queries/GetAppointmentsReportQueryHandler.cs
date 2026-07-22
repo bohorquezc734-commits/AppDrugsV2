@@ -38,7 +38,10 @@ namespace AppDrugsV2.Application.Features.Reports.Queries
 
             if (!string.IsNullOrWhiteSpace(request.Status) &&
                 Enum.TryParse<AppointmentStatus>(request.Status, ignoreCase: true, out var status))
-                query = query.Where(a => a.Status == status);
+            {
+                var filterStatus = status;
+                query = query.Where(a => a.Status == filterStatus);
+            }
 
             if (request.GestorFarmaceuticoId.HasValue)
                 query = query.Where(a => a.GestorFarmaceuticoId == request.GestorFarmaceuticoId.Value);
