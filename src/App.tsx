@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import { authService } from './services/auth';
+import { DrugiAssistant } from './components/Drugi/DrugiAssistant';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -50,6 +51,8 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>
+      {/* Asistente Virtual Global */}
+      <DrugiAssistant />
     </>
   );
 }

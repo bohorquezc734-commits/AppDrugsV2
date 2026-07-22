@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppointmentReportFilters, InventoryReportFilters } from '../../services/reports';
 
 interface ReportFiltersProps {
@@ -21,6 +21,11 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
     gestorId: undefined,
     onlyActive: true,
   });
+
+  useEffect(() => {
+    onApply(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,17 +115,11 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
 
         <div className="flex items-end gap-2">
           <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-          >
-            Aplicar Filtros
-          </button>
-          <button
             type="button"
             onClick={handleReset}
             className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
           >
-            Limpiar
+            Limpiar Filtros
           </button>
         </div>
       </div>
