@@ -1,7 +1,8 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Auth.DTOs;
 
 namespace AppDrugsV2.Application.Features.Auth.Queries
@@ -29,15 +30,15 @@ namespace AppDrugsV2.Application.Features.Auth.Queries
                 .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
             if (user == null)
-                return Result<LoginResponse>.Failure("Credenciales inválidas");
+                return Result<LoginResponse>.Failure(AppConstants.Messages.InvalidCredentials);
 
             // 2. Verificar si está activo
             if (!user.IsActive)
-                return Result<LoginResponse>.Failure("Usuario desactivado");
+                return Result<LoginResponse>.Failure(AppConstants.Messages.UserDeactivated);
 
             // 3. Validar contraseña
             if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
-                return Result<LoginResponse>.Failure("Credenciales inválidas");
+                return Result<LoginResponse>.Failure(AppConstants.Messages.InvalidCredentials);
 
             // 4. Registrar el login
             user.RecordLogin();
@@ -57,7 +58,7 @@ namespace AppDrugsV2.Application.Features.Auth.Queries
                 FullName = user.FullName,
                 Role = user.Role.ToString(),
                 Token = token,
-                ExpiresAt = DateTime.UtcNow.AddHours(1)
+                ExpiresAt = DateTime.UtcNow.AddHours(AppConstants.Jwt.TokenExpirationHours)
             };
 
             return Result<LoginResponse>.Success(response);

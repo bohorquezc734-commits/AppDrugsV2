@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
+using AppDrugsV2.Application.Common.Constants;
 
 namespace AppDrugsV2.Application.Features.Notifications.Commands
 {
@@ -20,7 +21,7 @@ namespace AppDrugsV2.Application.Features.Notifications.Commands
         {
             if (_currentUserService.UserId == null)
             {
-                return Result<bool>.Failure("User is not authenticated");
+                return Result<bool>.Failure(AppConstants.Messages.UserNotAuthenticatedEn);
             }
 
             var userId = _currentUserService.UserId.Value;
@@ -30,7 +31,7 @@ namespace AppDrugsV2.Application.Features.Notifications.Commands
 
             if (notification == null)
             {
-                return Result<bool>.Failure("Notification not found");
+                return Result<bool>.Failure(AppConstants.Messages.NotificationNotFound);
             }
 
             notification.MarkAsRead();

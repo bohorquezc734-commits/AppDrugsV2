@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Common.Results;
+using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Domain.Entities;
 
 namespace AppDrugsV2.Application.Features.Appointments.Commands
@@ -23,7 +24,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
         {
             // 1. Validar autenticación
             if (!_currentUserService.IsAuthenticated)
-                return Result<int>.Failure("Usuario no autenticado.");
+                return Result<int>.Failure(AppConstants.Messages.UserNotAuthenticated);
 
             var userId = _currentUserService.UserId.Value;
 
@@ -72,6 +73,14 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
 
                 await _context.SaveChangesAsync(cancellationToken);
             }
+            // 6. Notificar al usuario que su turno fue registrado
+            var notification = new Notification(
+                userId,
+                string.Format(AppConstants.NotificationMessages.AppointmentCreado, appointment.Id, gestor.NombreSede),
+                Domain.Enums.NotificationType.Success
+            );
+            await _context.Notifications.AddAsync(notification, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Result<int>.Success(appointment.Id);
         }
