@@ -15,7 +15,9 @@ import MainLayout from '../components/Layout/MainLayout';
 import type { AnyTab } from '../components/Layout/Sidebar';
 import Configuracion from '../components/Profile/Configuracion';
 import { AppointmentQrCard } from '../components/Appointments/AppointmentQrCard';
-
+import { useMyAppointments } from '../hooks/useAppointments';
+import { AppointmentSkeleton } from '../components/Common/AppointmentSkeleton';
+import { ErrorBoundary } from '../components/Common/ErrorBoundary';
 interface CartItem {
   inventoryId: number;
   drugName: string;
@@ -54,9 +56,14 @@ const UserDashboard: React.FC = () => {
   const [submitting, setSubmitting]     = useState(false);
   const [loadingInventory, setLoadingInventory] = useState(false);
 
-  // ─── Mis turnos ──────────────────────────────────────────────────────
-  const [appointments, setAppointments]     = useState<AppointmentDto[]>([]);
-  const [loadingAppts, setLoadingAppts]     = useState(false);
+  // ─── Mis turnos (React Query) ──────────────────────────────────────────────
+  const { 
+    data: appointments = [], 
+    isLoading: loadingAppts, 
+    isError: isErrorAppts,
+    error: apptsError,
+    refetch: refetchAppts
+  } = useMyAppointments();
 
   // Verificar rol
   useEffect(() => {
@@ -111,22 +118,13 @@ const UserDashboard: React.FC = () => {
     }
   }, [selectedGestor]);
 
-  // Cargar mis turnos
-  const loadAppointments = useCallback(async () => {
-    setLoadingAppts(true);
-    try {
-      const data = await appointmentsService.getMyAppointments();
-      setAppointments(data);
-    } catch {
-      toast.error('Error cargando tus turnos');
-    } finally {
-      setLoadingAppts(false);
-    }
-  }, []);
-
+  // (La carga de turnos ahora la maneja React Query automáticamente)
+  // Sin embargo, si el usuario navega de vuelta a la pestaña, podríamos querer un refetch suave
   useEffect(() => {
-    if (activeTab === 'mis-turnos') loadAppointments();
-  }, [activeTab, loadAppointments]);
+    if (activeTab === 'mis-turnos') {
+      refetchAppts();
+    }
+  }, [activeTab, refetchAppts]);
 
   // ─── Carrito ─────────────────────────────────────────────────────────
   const addToCart = () => {
@@ -165,6 +163,8 @@ const UserDashboard: React.FC = () => {
       setSelectedGestor(0);
       setArchivo(null);
       setActiveTab('mis-turnos');
+      // Refrescar los turnos tras crear uno nuevo
+      refetchAppts();
     } catch (err: any) {
       const msg = err.response?.data?.error || 'Error al crear el turno';
       toast.error(msg);
@@ -388,74 +388,95 @@ const UserDashboard: React.FC = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>📁 Mis Turnos</h2>
-              <button onClick={loadAppointments} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14, color: '#475569', fontWeight: 600 }}>
+              <button onClick={() => refetchAppts()} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14, color: '#475569', fontWeight: 600 }}>
                 🔄 Actualizar
               </button>
             </div>
 
-            {loadingAppts ? (
-              <div style={{ textAlign: 'center', padding: 60, color: '#64748b' }}>⏳ Cargando tus turnos...</div>
-            ) : appointments.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 12, color: '#64748b' }}>
-                <p style={{ fontSize: 18, marginBottom: 10 }}>📭 No tienes turnos aún</p>
-                <button onClick={() => setActiveTab('nuevo-turno')}
-                  style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
-                  + Crear mi primer turno
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {appointments.map(apt => {
-                  const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: '#64748b' };
+            <ErrorBoundary>
+              {(() => {
+                if (loadingAppts) {
                   return (
-                    <div key={apt.id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
-                        <div>
-                          <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 16, color: '#1e293b' }}>Turno #{apt.id}</p>
-                          <p style={{ margin: '0 0 2px', fontSize: 14, color: '#64748b' }}>🏪 {apt.sedeName}</p>
-                          <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
-                            📅 Creado: {new Date(apt.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
-                          </p>
-                        </div>
-                        <span style={{ background: statusInfo.color + '20', color: statusInfo.color, borderRadius: 20, padding: '4px 14px', fontWeight: 700, fontSize: 13, border: `1px solid ${statusInfo.color}40` }}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-
-                      {apt.details && apt.details.length > 0 && (
-                        <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
-                          <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Medicamentos solicitados:</p>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                            {apt.details.map(d => (
-                              <span key={d.id} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 6, padding: '3px 10px', fontSize: 13 }}>
-                                {d.drugName} × {d.quantity}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {apt.observaciones && (
-                        <div style={{ marginTop: 10, background: '#fefce8', borderRadius: 8, padding: '8px 12px' }}>
-                          <p style={{ margin: 0, fontSize: 13, color: '#854d0e' }}>💬 {apt.observaciones}</p>
-                        </div>
-                      )}
-
-                      {apt.fechaEntrega && (
-                        <p style={{ marginTop: 8, fontSize: 13, color: '#16a34a', fontWeight: 600 }}>
-                          📦 Fecha de entrega: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
-                        </p>
-                      )}
-
-                      {/* ── QR del turno ── */}
-                      <div style={{ marginTop: 16, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
-                        <AppointmentQrCard appointment={apt} />
-                      </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <AppointmentSkeleton />
+                      <AppointmentSkeleton />
+                      <AppointmentSkeleton />
                     </div>
                   );
-                })}
-              </div>
-            )}
+                }
+
+                if (isErrorAppts) {
+                  // Lanzamos el error para que el ErrorBoundary lo atrape, o mostramos un mensaje
+                  throw apptsError || new Error('Ocurrió un error al cargar tus turnos');
+                }
+
+                if (appointments.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 12, color: '#64748b' }}>
+                      <p style={{ fontSize: 18, marginBottom: 10 }}>📭 No tienes turnos aún</p>
+                      <button onClick={() => setActiveTab('nuevo-turno')}
+                        style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
+                        + Crear mi primer turno
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {appointments.map(apt => {
+                      const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: '#64748b' };
+                      return (
+                        <div key={apt.id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
+                            <div>
+                              <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 16, color: '#1e293b' }}>Turno #{apt.id}</p>
+                              <p style={{ margin: '0 0 2px', fontSize: 14, color: '#64748b' }}>🏪 {apt.sedeName}</p>
+                              <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
+                                📅 Creado: {new Date(apt.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                              </p>
+                            </div>
+                            <span style={{ background: statusInfo.color + '20', color: statusInfo.color, borderRadius: 20, padding: '4px 14px', fontWeight: 700, fontSize: 13, border: `1px solid ${statusInfo.color}40` }}>
+                              {statusInfo.label}
+                            </span>
+                          </div>
+
+                          {apt.details && apt.details.length > 0 && (
+                            <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                              <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Medicamentos solicitados:</p>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                {apt.details.map(d => (
+                                  <span key={d.id} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 6, padding: '3px 10px', fontSize: 13 }}>
+                                    {d.drugName} × {d.quantity}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {apt.observaciones && (
+                            <div style={{ marginTop: 10, background: '#fefce8', borderRadius: 8, padding: '8px 12px' }}>
+                              <p style={{ margin: 0, fontSize: 13, color: '#854d0e' }}>💬 {apt.observaciones}</p>
+                            </div>
+                          )}
+
+                          {apt.fechaEntrega && (
+                            <p style={{ marginTop: 8, fontSize: 13, color: '#16a34a', fontWeight: 600 }}>
+                              📦 Fecha de entrega: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
+                            </p>
+                          )}
+
+                          {/* ── QR del turno ── */}
+                          <div style={{ marginTop: 16, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+                            <AppointmentQrCard appointment={apt} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </ErrorBoundary>
           </div>
         )}
       </div>
