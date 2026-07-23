@@ -23,7 +23,10 @@ export interface AppointmentDto {
   observaciones?: string;
   isActive: boolean;
   details: AppointmentDetailDto[];
+  /** Base64 del QR generado – se puebla tras llamar a POST /appointments/{id}/qr */
+  qrCodeBase64?: string;
 }
+
 
 export interface CreateAppointmentDetailRequest {
   inventoryId: number;
@@ -73,4 +76,18 @@ export const appointmentsService = {
     const response = await api.patch(`/Appointments/${id}/status`, { appointmentId: id, newStatus: status });
     return response.data;
   },
+
+  /**
+   * Paso 2 – Genera el código QR de un turno.
+   * POST /api/appointments/{id}/qr
+   * El JWT ya va inyectado por el interceptor de api.ts.
+   * Retorna el QR en Base64 (string plano, sin prefijo data:image).
+   */
+  generateQr: async (appointmentId: number): Promise<string> => {
+    const response = await api.post<{ qrBase64: string }>(
+      `/Appointments/${appointmentId}/qr`
+    );
+    return response.data.qrBase64;
+  },
 };
+

@@ -8,10 +8,10 @@ import { authService } from '../services/auth';
 import { toast } from 'react-toastify';
 import { reportsService, downloadFile } from '../services/reports';
 import ReportModal from '../components/Reports/ReportModal';
-import api from '../services/api';
 import MainLayout from '../components/Layout/MainLayout';
 import type { AnyTab } from '../components/Layout/Sidebar';
 import Configuracion from '../components/Profile/Configuracion';
+import { AppointmentQrCard } from '../components/Appointments/AppointmentQrCard';
 import { useDrugiStore } from '../store/useDrugiStore';
 
 type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion';
@@ -549,6 +549,11 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="mt-3 text-sm text-gray-700">
                         <strong>Medicamentos:</strong> {apt.details.map(d => `${d.drugName} (x${d.quantity})`).join(', ')}
+                      </div>
+
+                      {/* ── Tarjeta de QR ── */}
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <AppointmentQrCard appointment={apt} />
                       </div>
                     </div>
                   );

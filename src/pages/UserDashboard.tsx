@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 import MainLayout from '../components/Layout/MainLayout';
 import type { AnyTab } from '../components/Layout/Sidebar';
 import Configuracion from '../components/Profile/Configuracion';
+import { AppointmentQrCard } from '../components/Appointments/AppointmentQrCard';
 
 interface CartItem {
   inventoryId: number;
@@ -445,6 +446,11 @@ const UserDashboard: React.FC = () => {
                           📦 Fecha de entrega: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
                         </p>
                       )}
+
+                      {/* ── QR del turno ── */}
+                      <div style={{ marginTop: 16, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+                        <AppointmentQrCard appointment={apt} />
+                      </div>
                     </div>
                   );
                 })}

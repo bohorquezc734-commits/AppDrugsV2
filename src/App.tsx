@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
@@ -27,6 +27,14 @@ const RoleBasedDashboard: React.FC = () => {
   }
 };
 
+// 🤖 Asistente: oculto solo en login y registro
+const DrugiWrapper: React.FC = () => {
+  const { pathname } = useLocation();
+  const authRoutes = ['/login', '/register'];
+  if (authRoutes.includes(pathname)) return null;
+  return <DrugiAssistant />;
+};
+
 function App() {
   return (
     <>
@@ -50,9 +58,9 @@ function App() {
           {/* Redirección por defecto */}
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
+        {/* Asistente Virtual: oculto en login y registro */}
+        <DrugiWrapper />
       </BrowserRouter>
-      {/* Asistente Virtual Global */}
-      <DrugiAssistant />
     </>
   );
 }
