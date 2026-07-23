@@ -7,6 +7,7 @@ using AppDrugsV2.Infrastructure.Persistence;
 using AppDrugsV2.Infrastructure.Services;
 using AppDrugsV2.Infrastructure.Services.Auth;
 using AppDrugsV2.Infrastructure.Services.Reports;
+using AppDrugsV2.Infrastructure.Persistence.Interceptors;
 
 namespace AppDrugsV2.Infrastructure
 {
@@ -16,11 +17,14 @@ namespace AppDrugsV2.Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.AddScoped<AuditableEntityInterceptor>();
+
             // Configurar DbContext con SQL Server
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
                 options.UseSqlServer(
                     configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+                .AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>()));
 
             // Registrar servicios
             services.AddScoped<IApplicationDbContext>(provider =>

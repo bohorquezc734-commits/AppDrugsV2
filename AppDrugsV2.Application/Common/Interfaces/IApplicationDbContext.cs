@@ -11,6 +11,7 @@ namespace AppDrugsV2.Application.Common.Interfaces
         DbSet<Inventory> Inventories { get; }
         DbSet<Appointment> Appointments { get; }
         DbSet<Notification> Notifications { get; }
+        DbSet<AuditLog> AuditLogs { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

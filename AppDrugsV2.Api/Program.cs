@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(AppConstants.Cors.PolicyName,
         policy =>
         {
-            policy.WithOrigins(AppConstants.Cors.FrontendOrigin)
+            policy.WithOrigins(AppConstants.Cors.FrontendOrigin, "http://localhost:5173")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
                   .AllowCredentials();
@@ -75,6 +75,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer              = jwtSettings[AppConstants.Jwt.IssuerKey]  ?? AppConstants.Jwt.DefaultIssuer,
             ValidAudience            = jwtSettings[AppConstants.Jwt.AudienceKey] ?? AppConstants.Jwt.DefaultAudience,
             IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.ContainsKey("X-Access-Token"))
+                {
+                    context.Token = context.Request.Cookies["X-Access-Token"];
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 

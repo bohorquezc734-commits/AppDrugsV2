@@ -36,9 +36,41 @@ namespace AppDrugsV2.Api.Controllers
             var result = await _mediator.Send(query);
 
             if (result.IsSuccess)
-                return Ok(result.Value);
+            {
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = result.Value.ExpiresAt
+                };
+                
+                Response.Cookies.Append("X-Access-Token", result.Value.Token, cookieOptions);
+
+                return Ok(new 
+                {
+                    result.Value.UserId,
+                    result.Value.FullName,
+                    result.Value.Role,
+                    result.Value.ExpiresAt
+                });
+            }
 
             return Unauthorized(new { error = result.Error });
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Append("X-Access-Token", "", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(-1)
+            });
+
+            return Ok(new { message = "Sesión cerrada correctamente." });
         }
 
         [HttpPost("forgot-password")]
