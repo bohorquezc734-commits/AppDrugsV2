@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -8,6 +10,17 @@ import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import { authService } from './services/auth';
 import { DrugiAssistant } from './components/Drugi/DrugiAssistant';
+
+// Configuración profesional del QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Evita peticiones innecesarias al cambiar de pestaña
+      staleTime: 1000 * 60 * 5, // Los datos se consideran "frescos" por 5 minutos
+      retry: 1, // Solo reintenta 1 vez si falla
+    },
+  },
+});
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -37,7 +50,7 @@ const DrugiWrapper: React.FC = () => {
 
 function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ToastContainer position="top-right" autoClose={3000} />
       <BrowserRouter>
         <Routes>
@@ -61,7 +74,9 @@ function App() {
         {/* Asistente Virtual: oculto en login y registro */}
         <DrugiWrapper />
       </BrowserRouter>
-    </>
+      {/* Devtools solo visibles en desarrollo */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 

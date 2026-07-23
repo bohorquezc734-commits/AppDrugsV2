@@ -17,7 +17,6 @@ export interface LoginResponse {
   userId: number;
   fullName: string;
   role: string;
-  token: string;
   expiresAt: string;
 }
 
@@ -32,20 +31,24 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN);
+  logout: async () => {
+    try {
+      await api.post('/Auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     localStorage.removeItem(APP_CONSTANTS.STORAGE_KEYS.USER);
     window.location.href = '/login';
   },
 
-  getToken: () => localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN),
+  getToken: () => null,
   
   getUser: () => {
     const user = localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.USER);
     return user ? JSON.parse(user) : null;
   },
 
-  isAuthenticated: () => !!localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN),
+  isAuthenticated: () => !!localStorage.getItem(APP_CONSTANTS.STORAGE_KEYS.USER),
 
   // 🔐 MÉTODOS DE ROLES
   getUserRole: () => {
