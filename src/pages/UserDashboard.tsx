@@ -424,7 +424,7 @@ const UserDashboard: React.FC = () => {
 
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {appointments.map(apt => {
+                    {appointments.map((apt: AppointmentDto) => {
                       const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: '#64748b' };
                       return (
                         <div key={apt.id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
@@ -445,7 +445,7 @@ const UserDashboard: React.FC = () => {
                             <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
                               <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Medicamentos solicitados:</p>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                {apt.details.map(d => (
+                                {apt.details.map((d: any) => (
                                   <span key={d.id} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 6, padding: '3px 10px', fontSize: 13 }}>
                                     {d.drugName} × {d.quantity}
                                   </span>

@@ -3,7 +3,7 @@ import { authService } from '../../services/auth';
 import { toast } from 'react-toastify';
 
 /* ─── Types ─────────────────────────────────── */
-export type AdminTab = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion';
+export type AdminTab = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion' | 'auditoria';
 export type UserTab  = 'medicamentos' | 'nuevo-turno' | 'mis-turnos' | 'configuracion';
 export type AnyTab   = AdminTab | UserTab;
 
@@ -62,6 +62,12 @@ const IconFolder = () => (
   </svg>
 );
 
+const IconShield = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+
 const IconPlus = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -113,6 +119,7 @@ const ADMIN_MENU: MenuItem[] = [
   { tab: 'inventarios',  label: 'Inventarios',   icon: <IconBox /> },
   { tab: 'turnos',       label: 'Turnos',        icon: <IconClipboard /> },
   { tab: 'reportes',     label: 'Reportes',      icon: <IconChart /> },
+  { tab: 'auditoria',    label: 'Auditoría',     icon: <IconShield /> },
 ];
 
 const PHARMACIST_MENU: MenuItem[] = [

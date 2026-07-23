@@ -74,8 +74,8 @@ function App() {
         {/* Asistente Virtual: oculto en login y registro */}
         <DrugiWrapper />
       </BrowserRouter>
-      {/* Devtools solo visibles en desarrollo */}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* Devtools de React Query: Comentado para que el botón flotante no se superponga con Drugi */}
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   );
 }

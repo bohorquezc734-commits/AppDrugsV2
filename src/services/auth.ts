@@ -17,6 +17,7 @@ export interface LoginResponse {
   userId: number;
   fullName: string;
   role: string;
+  token: string;
   expiresAt: string;
 }
 
