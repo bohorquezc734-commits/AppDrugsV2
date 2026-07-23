@@ -46,7 +46,9 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       const response = await authService.login({ email, password });
+      // Guardar usuario Y token explícitamente
       localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.USER, JSON.stringify(response));
+      localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN, response.token);
       toast.success('¡Inicio de sesión exitoso!');
       navigate('/dashboard');
     } catch (err: any) {

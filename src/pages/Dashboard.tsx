@@ -11,10 +11,11 @@ import ReportModal from '../components/Reports/ReportModal';
 import MainLayout from '../components/Layout/MainLayout';
 import type { AnyTab } from '../components/Layout/Sidebar';
 import Configuracion from '../components/Profile/Configuracion';
+import AuditLogs from './AuditLogs';
 import { AppointmentQrCard } from '../components/Appointments/AppointmentQrCard';
 import { useDrugiStore } from '../store/useDrugiStore';
 
-type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion';
+type TabType = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion' | 'auditoria';
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: 'Recibido', color: '#3b82f6' },
@@ -386,6 +387,7 @@ const Dashboard: React.FC = () => {
     inventarios: 'Inventario de Medicamentos',
     turnos: 'Gestión de Turnos',
     reportes: 'Reportes del Sistema',
+    auditoria: 'Registros de Auditoría',
     configuracion: 'Configuración de Perfil'
   };
 
@@ -576,6 +578,11 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </div>
+        )}
+
+        {/* ── TAB: Auditoria ───────────────────────────────────────── */}
+        {activeTab === 'auditoria' && isAdmin && (
+          <AuditLogs />
         )}
       </div>
 
