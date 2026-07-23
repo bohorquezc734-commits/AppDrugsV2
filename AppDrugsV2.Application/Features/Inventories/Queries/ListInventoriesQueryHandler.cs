@@ -51,7 +51,7 @@ namespace AppDrugsV2.Application.Features.Inventories.Queries
                     DrugId = i.DrugId,
                     DrugName = i.Drug != null ? i.Drug.Name : string.Empty,
                     GestorFarmaceuticoId = i.GestorFarmaceuticoId,
-                    SedeName = i.GestorFarmaceutico != null ? i.GestorFarmaceutico.NombreSede : string.Empty,
+                    SedeName = i.GestorFarmaceutico != null ? i.GestorFarmaceutico.NombreSede! : string.Empty,
                     Quantity = i.Quantity,
                     IsActive = i.IsActive,
                     CreatedAt = i.CreatedAt,

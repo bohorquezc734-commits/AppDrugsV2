@@ -66,7 +66,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.DrugUpdated });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -82,7 +82,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.DrugDeleted });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -100,7 +100,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.StockUpdated });
 
-            if (result.Error.Contains(AppConstants.Messages.NotFoundKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });

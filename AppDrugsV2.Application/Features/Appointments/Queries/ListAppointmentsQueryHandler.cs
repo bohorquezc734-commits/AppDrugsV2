@@ -22,7 +22,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
                 .Include(a => a.GestorFarmaceutico)
                 .Include(a => a.Details)
                     .ThenInclude(d => d.Inventory)
-                        .ThenInclude(i => i.Drug)
+                        .ThenInclude(i => i!.Drug)
                 .Where(a => a.IsActive)
                 .AsQueryable();
 
@@ -51,7 +51,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
                     UserId = a.UserId,
                     UserName = a.User != null ? $"{a.User.FullName}" : string.Empty,
                     GestorFarmaceuticoId = a.GestorFarmaceuticoId,
-                    SedeName = a.GestorFarmaceutico != null ? a.GestorFarmaceutico.NombreSede : string.Empty,
+                    SedeName = a.GestorFarmaceutico != null ? a.GestorFarmaceutico.NombreSede! : string.Empty,
                     Status = a.Status,
                     ArchivoNombre = a.ArchivoNombre,
                     CreatedAt = a.CreatedAt,

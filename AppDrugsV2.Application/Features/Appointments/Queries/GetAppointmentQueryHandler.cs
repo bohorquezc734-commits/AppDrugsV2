@@ -21,7 +21,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
                 .Include(a => a.GestorFarmaceutico)
                 .Include(a => a.Details)
                     .ThenInclude(d => d.Inventory)
-                        .ThenInclude(i => i.Drug)
+                        .ThenInclude(i => i!.Drug)
                 .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsActive, cancellationToken);
 
             if (appointment == null)

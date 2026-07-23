@@ -88,7 +88,7 @@ namespace AppDrugsV2.Api.Controllers
             if (result.IsSuccess)
                 return Ok(new { message = AppConstants.Messages.AppointmentUpdated });
 
-            if (result.Error.Contains(AppConstants.Messages.NotExistsKeyword))
+            if (result.Error!.Contains(AppConstants.Messages.NotExistsKeyword))
                 return NotFound(new { error = result.Error });
 
             return BadRequest(new { error = result.Error });
@@ -119,4 +119,4 @@ namespace AppDrugsV2.Api.Controllers
             return BadRequest(new { error = result.Error });
         }
     }
-}
+}
