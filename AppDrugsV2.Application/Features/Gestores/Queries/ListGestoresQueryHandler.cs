@@ -23,8 +23,8 @@ namespace AppDrugsV2.Application.Features.Gestores.Queries
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 query = query.Where(g =>
-                    g.NombreSede.Contains(request.SearchTerm) ||
-                    g.Direccion.Contains(request.SearchTerm));
+                    g.NombreSede!.Contains(request.SearchTerm) ||
+                    g.Direccion!.Contains(request.SearchTerm));
             }
 
             if (request.IdEps.HasValue)
@@ -38,9 +38,9 @@ namespace AppDrugsV2.Application.Features.Gestores.Queries
                 .Select(g => new GestorDto
                 {
                     Id = g.Id,
-                    NombreSede = g.NombreSede,
-                    Direccion = g.Direccion,
-                    Telefono = g.Telefono,
+                    NombreSede = g.NombreSede!,
+                    Direccion = g.Direccion!,
+                    Telefono = g.Telefono!,
                     IdEps = g.IdEps,
                     IsActive = g.IsActive,
                     CreatedAt = g.CreatedAt

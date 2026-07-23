@@ -42,7 +42,7 @@ namespace AppDrugsV2.Api.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
-                    Expires = result.Value.ExpiresAt
+                    Expires = result.Value!.ExpiresAt
                 };
                 
                 Response.Cookies.Append("X-Access-Token", result.Value.Token, cookieOptions);

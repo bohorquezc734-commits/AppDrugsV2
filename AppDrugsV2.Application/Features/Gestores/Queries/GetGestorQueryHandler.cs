@@ -25,9 +25,9 @@ namespace AppDrugsV2.Application.Features.Gestores.Queries
             return new GestorDto
             {
                 Id = gestor.Id,
-                NombreSede = gestor.NombreSede,
-                Direccion = gestor.Direccion,
-                Telefono = gestor.Telefono,
+                NombreSede = gestor.NombreSede!,
+                Direccion = gestor.Direccion!,
+                Telefono = gestor.Telefono!,
                 IdEps = gestor.IdEps,
                 IsActive = gestor.IsActive,
                 CreatedAt = gestor.CreatedAt

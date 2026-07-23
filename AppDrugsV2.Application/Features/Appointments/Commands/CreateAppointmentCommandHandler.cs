@@ -26,7 +26,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
             if (!_currentUserService.IsAuthenticated)
                 return Result<int>.Failure(AppConstants.Messages.UserNotAuthenticated);
 
-            var userId = _currentUserService.UserId.Value;
+            var userId = _currentUserService.UserId!.Value;
 
             // 2. Validar que la sede existe
             var gestor = await _context.GestoresFarmaceuticos
