@@ -125,5 +125,16 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet("users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var result = await _mediator.Send(new GetAllUsersQuery());
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { error = result.Error });
+        }
     }
 }
