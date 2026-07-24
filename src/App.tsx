@@ -4,7 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import 'react-toastify/dist/ReactToastify.css';
-import Login from './pages/Login';
+import Premium3DLogin from './components/Common/Premium3DLogin';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
@@ -59,7 +59,7 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Premium3DLogin />} />
           <Route path="/register" element={<Register />} />
           
           {/* 🔐 Rutas protegidas */}
