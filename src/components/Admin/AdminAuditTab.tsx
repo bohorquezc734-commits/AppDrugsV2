@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { auditService, AuditLog } from '../services/audit';
-import { ErrorBoundary } from '../components/Common/ErrorBoundary';
+import { auditService, AuditLog } from '../../services/audit';
+import { ErrorBoundary } from '../../components/Common/ErrorBoundary';
 
 const entityTranslations: Record<string, string> = {
   "Appointment": "Turno",

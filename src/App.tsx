@@ -6,10 +6,11 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import { authService } from './services/auth';
 import { DrugiAssistant } from './components/Drugi/DrugiAssistant';
+import PharmacistDashboard from './pages/PharmacistDashboard';
 
 // Configuración profesional del QueryClient
 const queryClient = new QueryClient({
@@ -33,10 +34,14 @@ const RoleBasedDashboard: React.FC = () => {
   
   if (user?.role === 'User') {
     return <UserDashboard />;
-  } else if (user?.role === 'Admin' || user?.role === 'Pharmacist') {
-    return <Dashboard />;
+  } else if (user?.role === 'Pharmacist') {
+    return <PharmacistDashboard />;
+  } else if (user?.role === 'Admin') {
+    return <AdminDashboard />;
   } else {
-    return <Dashboard />;
+    // Redirigir a login y limpiar sesión preventivamente
+    authService.logout();
+    return <Navigate to="/login" replace />;
   }
 };
 
