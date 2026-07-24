@@ -8,6 +8,7 @@ interface MainLayoutProps {
   onTabChange: (tab: AnyTab) => void;
   role: 'admin' | 'pharmacist' | 'user';
   sectionLabel: string;
+  cartCount?: number;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
@@ -16,6 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onTabChange,
   role,
   sectionLabel,
+  cartCount = 0,
 }) => {
   return (
     <div style={{
@@ -24,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       background: 'var(--bg-main)',
     }}>
       {/* Fixed Sidebar */}
-      <Sidebar activeTab={activeTab} onTabChange={onTabChange} role={role} />
+      <Sidebar activeTab={activeTab} onTabChange={onTabChange} role={role} cartCount={cartCount} />
 
       {/* Main content shifted right */}
       <div style={{

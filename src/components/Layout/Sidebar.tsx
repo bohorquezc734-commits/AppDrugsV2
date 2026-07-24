@@ -3,7 +3,7 @@ import { authService } from '../../services/auth';
 import { toast } from 'react-toastify';
 
 /* ─── Types ─────────────────────────────────── */
-export type AdminTab = 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion' | 'auditoria';
+export type AdminTab = 'overview' | 'usuarios' | 'medicamentos' | 'sedes' | 'inventarios' | 'turnos' | 'reportes' | 'configuracion' | 'auditoria';
 export type UserTab  = 'medicamentos' | 'nuevo-turno' | 'mis-turnos' | 'configuracion';
 export type AnyTab   = AdminTab | UserTab;
 
@@ -11,9 +11,18 @@ interface SidebarProps {
   activeTab: AnyTab;
   onTabChange: (tab: AnyTab) => void;
   role: 'admin' | 'pharmacist' | 'user';
+  cartCount?: number;
 }
 
 /* ─── SVG Icons ─────────────────────────────── */
+const IconDashboard = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="7" height="9" x="3" y="3" rx="1" />
+    <rect width="7" height="5" x="14" y="3" rx="1" />
+    <rect width="7" height="9" x="14" y="12" rx="1" />
+    <rect width="7" height="5" x="3" y="16" rx="1" />
+  </svg>
+);
 const IconPill = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/>
@@ -114,6 +123,8 @@ interface MenuItem {
 }
 
 const ADMIN_MENU: MenuItem[] = [
+  { tab: 'overview',     label: 'Resumen',       icon: <IconDashboard /> },
+  { tab: 'usuarios',     label: 'Usuarios',      icon: <IconUser /> },
   { tab: 'medicamentos', label: 'Medicamentos', icon: <IconPill /> },
   { tab: 'sedes',        label: 'Sedes',         icon: <IconStore /> },
   { tab: 'inventarios',  label: 'Inventarios',   icon: <IconBox /> },
@@ -136,7 +147,7 @@ const USER_MENU: MenuItem[] = [
 ];
 
 /* ─── Sidebar Component ─────────────────────── */
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCount }) => {
   const user = authService.getUser();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -175,14 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role }) => {
         alignItems: 'center',
         gap: 10,
       }}>
-        <div style={{
-          width: 36, height: 36,
-          background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-          borderRadius: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
-          flexShrink: 0,
-        }}>
+        <div className="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/30 flex-shrink-0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
           </svg>
@@ -208,42 +212,31 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role }) => {
             <button
               key={item.tab}
               onClick={() => onTabChange(item.tab)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '9px 12px',
-                borderRadius: 8,
-                border: 'none',
-                background: isActive ? 'var(--sidebar-item-active-bg)' : 'transparent',
-                color: isActive ? 'var(--sidebar-item-active-text)' : 'var(--sidebar-text)',
-                fontWeight: isActive ? 600 : 500,
-                fontSize: 13.5,
-                cursor: 'pointer',
-                marginBottom: 2,
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
-              }}
-              onMouseEnter={e => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-item-hover)';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-text)';
-                }
-              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full border-none text-left mb-1 transition-all duration-200 ${
+                isActive 
+                  ? 'bg-emerald-600 text-white font-semibold shadow-md shadow-emerald-600/20' 
+                  : 'bg-transparent text-slate-600 font-medium hover:bg-emerald-600/10 hover:text-emerald-700'
+              }`}
             >
               <span style={{ opacity: isActive ? 1 : 0.7, display: 'flex', alignItems: 'center' }}>
                 {item.icon}
               </span>
               {item.label}
-              {isActive && (
+              {item.tab === 'nuevo-turno' && cartCount !== undefined && cartCount > 0 && (
+                <span style={{ 
+                  marginLeft: 'auto', 
+                  background: isActive ? '#fff' : '#ef4444', 
+                  color: isActive ? '#2563eb' : 'white', 
+                  fontSize: 11, 
+                  fontWeight: 800,
+                  padding: '2px 6px',
+                  borderRadius: 12,
+                  lineHeight: 1
+                }}>
+                  {cartCount}
+                </span>
+              )}
+              {isActive && item.tab !== 'nuevo-turno' && (
                 <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.7)' }} />
               )}
             </button>
@@ -254,31 +247,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role }) => {
       {/* ── Bottom: Settings + User ──────────── */}
       <div style={{ borderTop: '1px solid var(--sidebar-border)', padding: '10px 10px 6px' }}>
         {/* Configuración */}
-        <button style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '9px 12px',
-          borderRadius: 8,
-          border: 'none',
-          background: 'transparent',
-          color: 'var(--sidebar-text)',
-          fontWeight: 500,
-          fontSize: 13,
-          cursor: 'pointer',
-          marginBottom: 4,
-          textAlign: 'left',
-          transition: 'all 0.15s',
-        }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-item-hover)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-text)';
-          }}
+        <button 
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-full border-none bg-transparent text-slate-600 font-medium text-left transition-all hover:bg-emerald-600/10 hover:text-emerald-700 mb-2"
           onClick={() => onTabChange('configuracion')}
         >
           <IconSettings /> Configuración
@@ -302,14 +272,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role }) => {
             }}
           >
             {/* Avatar */}
-            <div style={{
-              width: 30, height: 30,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: 12,
-              flexShrink: 0,
-            }}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
               {initials}
             </div>
             <div style={{ flex: 1, textAlign: 'left', overflow: 'hidden' }}>

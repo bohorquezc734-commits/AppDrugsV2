@@ -9,30 +9,30 @@
    DESIGN TOKENS
 ─────────────────────────────────────────────── */
 :root {
-  --bg-main: #eef2fb;
+  --bg-main: #f8fafc;
   --sidebar-bg: #ffffff;
-  --sidebar-width: 230px;
-  --sidebar-item-active-bg: #2563eb;
+  --sidebar-width: 260px;
+  --sidebar-item-active-bg: #059669;
   --sidebar-item-active-text: #ffffff;
-  --sidebar-item-hover: #eff6ff;
-  --sidebar-text: #475569;
+  --sidebar-item-hover: rgba(5, 150, 105, 0.08);
+  --sidebar-text: #334155;
   --sidebar-text-muted: #94a3b8;
   --sidebar-border: #e2e8f0;
   --topbar-bg: #ffffff;
-  --topbar-height: 58px;
-  --accent: #2563eb;
-  --accent-light: #eff6ff;
-  --accent-hover: #1d4ed8;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --topbar-height: 64px;
+  --accent: #0f766e;
+  --accent-light: #f0fdf4;
+  --accent-hover: #047857;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
   --text-muted: #94a3b8;
   --surface: #ffffff;
   --surface-hover: #f8fafc;
   --border: #e2e8f0;
   --border-light: #f1f5f9;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
