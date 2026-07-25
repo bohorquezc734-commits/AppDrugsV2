@@ -33,21 +33,11 @@ namespace AppDrugsV2.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("El contenido del QR no puede estar vacío.", nameof(content));
 
-            // ── Stub: PNG 1×1 px transparente (válido como imagen Base64) ─────────
-            // TODO: reemplazar con QRCoder.PngByteQRCode o ZXing.Net cuando se
-            //       agregue el paquete NuGet correspondiente.
-            // Devolvemos el contenido como texto codificado en Base64
-            // para que el sistema funcione end-to-end sin dependencias extra.
-            var bytes  = System.Text.Encoding.UTF8.GetBytes($"QR:{content}");
-            return Convert.ToBase64String(bytes);
-
-            /* ── Integración real con QRCoder (descomenta cuando instales el paquete) ──
-            using var qrGen    = new QRCodeGenerator();
-            var       qrData   = qrGen.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
-            var       qrCode   = new PngByteQRCode(qrData);
+            using var qrGen    = new QRCoder.QRCodeGenerator();
+            var       qrData   = qrGen.CreateQrCode(content, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var       qrCode   = new QRCoder.PngByteQRCode(qrData);
             var       pngBytes = qrCode.GetGraphic(pixelsPerModule: 4);
             return Convert.ToBase64String(pngBytes);
-            */
         }
     }
 }
