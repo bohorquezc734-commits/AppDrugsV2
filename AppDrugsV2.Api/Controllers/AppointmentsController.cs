@@ -104,7 +104,7 @@ namespace AppDrugsV2.Api.Controllers
         /// <param name="id">ID del turno.</param>
         /// <returns>200 con el QR en Base64 | 404 si el turno no existe | 400 si hay un error de validación.</returns>
         [HttpPost("{id}/qr")]
-        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
+        [Authorize]
         public async Task<IActionResult> GenerateQr(int id)
         {
             var command = new GenerateAppointmentQrCommand { AppointmentId = id };
