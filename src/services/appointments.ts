@@ -65,7 +65,9 @@ export const appointmentsService = {
     }
 
     const response = await api.post<{ appointmentId: number }>('/Appointments', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {
+        'Content-Type': undefined
+      }
     });
     return response.data;
   },

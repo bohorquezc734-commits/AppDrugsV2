@@ -5,6 +5,7 @@ import * as signalR from '@microsoft/signalr';
 export interface QrReadyPayload {
   appointmentId: number;
   message: string;
+  qrBase64?: string;
 }
 
 interface UseNotificationHubOptions {
@@ -75,16 +76,26 @@ export function useNotificationHub({
       console.warn('[SignalR] Conexión cerrada.')
     );
 
+    let isMounted = true;
+
     // Iniciar
     connection
       .start()
-      .then(() => console.info('[SignalR] Conectado al hub:', hubUrl))
+      .then(() => {
+        if (!isMounted) {
+          // Si el componente se desmontó mientras conectaba, cerramos inmediatamente
+          connection.stop().catch(() => {});
+          return;
+        }
+        console.info('[SignalR] Conectado al hub:', hubUrl);
+      })
       .catch(err => console.error('[SignalR] Error al conectar:', err));
 
     connectionRef.current = connection;
 
     // Cleanup: detener la conexión al desmontar
     return () => {
+      isMounted = false;
       connection.stop().catch(() => {});
       connectionRef.current = null;
     };

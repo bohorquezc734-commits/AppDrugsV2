@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth';
+import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '../services/auth';
 import { toast } from 'react-toastify';
-import { APP_CONSTANTS } from '../../constants/appConstants';
 
-const Premium3DLogin: React.FC = () => {
+const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -15,21 +13,18 @@ const Premium3DLogin: React.FC = () => {
     setLoading(true);
     
     try {
-      const response = await authService.login({ email, password });
-      localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.USER, JSON.stringify(response));
-      localStorage.setItem(APP_CONSTANTS.STORAGE_KEYS.TOKEN, response.token);
-      toast.success('¡Inicio de sesión exitoso!');
-      setTimeout(() => navigate('/dashboard'), 300);
+      await authService.forgotPassword(email);
+      toast.success('Si el correo existe, se enviarán instrucciones para restablecer la contraseña.');
+      setTimeout(() => navigate(`/reset-password?email=${encodeURIComponent(email)}`), 2000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Credenciales incorrectas';
-      toast.error(errorMessage);
+      toast.error(err.response?.data?.error || 'Error al procesar la solicitud');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-900 flex items-center justify-end px-8 md:px-24 overflow-hidden font-sans">
+    <div className="relative min-h-screen bg-slate-900 flex items-center justify-center px-4 overflow-hidden font-sans">
       
       {/* Background Animated Blobs */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
@@ -46,11 +41,11 @@ const Premium3DLogin: React.FC = () => {
         <div className="mb-8 text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 mx-auto mb-4">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Bienvenido a AppDrugs</h1>
-          <p className="text-slate-300 mt-2 text-sm font-medium">Gestión integral de tu farmacia</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Recuperar Contraseña</h1>
+          <p className="text-slate-300 mt-2 text-sm font-medium">Ingresa tu correo para recibir instrucciones</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -67,46 +62,24 @@ const Premium3DLogin: React.FC = () => {
               required
             />
           </div>
-          
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
-              Contraseña
-            </label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 text-white rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-400"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer text-slate-300 font-medium hover:text-white transition-colors">
-              <input type="checkbox" className="w-4 h-4 rounded text-emerald-500 bg-white/10 border-white/20 focus:ring-emerald-500 focus:ring-offset-0" />
-              Recordarme
-            </label>
-            <button 
-              type="button" 
-              onClick={() => navigate('/forgot-password')}
-              className="text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
-          </div>
 
           <button 
             type="submit"
             disabled={loading}
             className="w-full py-4 bg-emerald-500 text-white rounded-full font-bold text-lg shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? 'Ingresando...' : 'Ingresar al Sistema'}
+            {loading ? 'Enviando...' : 'Enviar Instrucciones'}
           </button>
+
+          <div className="text-center mt-4">
+            <Link to="/login" className="text-emerald-400 font-semibold hover:text-emerald-300 transition-colors text-sm">
+              Volver a Iniciar Sesión
+            </Link>
+          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default Premium3DLogin;
+export default ForgotPassword;

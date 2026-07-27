@@ -29,12 +29,10 @@ export const AppointmentQrCard: React.FC<AppointmentQrCardProps> = ({ appointmen
   // Callback estable que actualiza el QR cuando llega el evento en tiempo real
   const handleQrReady = useCallback((payload: QrReadyPayload) => {
     if (payload.appointmentId === appointment.id) {
-      toast.success(`✅ ${payload.message}`);
-      // Recargamos el QR desde el servidor para obtener el Base64 fresco
-      appointmentsService
-        .generateQr(appointment.id)
-        .then(base64 => setQrBase64(base64))
-        .catch(() => {/* ya notificamos via toast */});
+      toast.success(payload.message);
+      if (payload.qrBase64) {
+        setQrBase64(payload.qrBase64);
+      }
     }
   }, [appointment.id]);
 

@@ -6,11 +6,11 @@ import { ErrorBoundary } from '../Common/ErrorBoundary';
 import { AppointmentQrCard } from '../Appointments/AppointmentQrCard';
 import Lottie from 'lottie-react';
 
-const STATUS_LABELS: Record<number, { label: string; color: string }> = {
-  1: { label: 'Recibido',   color: '#3b82f6' },
-  2: { label: 'En Proceso', color: '#f59e0b' },
-  3: { label: 'Entregado',  color: '#10b981' },
-  4: { label: 'Cancelado',  color: '#ef4444' },
+const STATUS_LABELS: Record<number, { label: string; color: string; bg: string; border: string }> = {
+  1: { label: 'Recibido',   color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  2: { label: 'En Proceso', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  3: { label: 'Entregado',  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  4: { label: 'Cancelado',  color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
 };
 
 interface MyAppointmentsTabProps {
@@ -31,11 +31,10 @@ const MyAppointmentsTab: React.FC<MyAppointmentsTabProps> = ({ onCreateNewClick,
   const [emptyAnimData, setEmptyAnimData] = useState<any>(null);
 
   useEffect(() => {
-    // Usamos una URL pública confiable para la animación Lottie (calendario vacío)
     fetch('https://assets3.lottiefiles.com/packages/lf20_r0d3m5z3.json')
       .then(res => res.json())
       .then(data => setEmptyAnimData(data))
-      .catch(err => console.error("Error al cargar animación Lottie", err));
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -46,55 +45,58 @@ const MyAppointmentsTab: React.FC<MyAppointmentsTabProps> = ({ onCreateNewClick,
 
   const filteredAppointments = appointments.filter((apt: AppointmentDto) => {
     if (filter === 'ALL') return true;
-    if (filter === 'PENDING') return apt.status === 1 || apt.status === 2; // Recibido o En Proceso
-    if (filter === 'COMPLETED') return apt.status === 3; // Entregado
-    if (filter === 'CANCELLED') return apt.status === 4; // Cancelado
+    if (filter === 'PENDING') return apt.status === 1 || apt.status === 2;
+    if (filter === 'COMPLETED') return apt.status === 3;
+    if (filter === 'CANCELLED') return apt.status === 4;
     return true;
   });
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: '#1e293b', margin: 0 }}>📁 Mis Turnos</h2>
-        
-        <div style={{ display: 'flex', gap: 8, background: '#f8fafc', padding: '4px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {[
-            { id: 'ALL', label: 'Todos' },
-            { id: 'PENDING', label: 'Pendientes' },
-            { id: 'COMPLETED', label: 'Entregados' },
-            { id: 'CANCELLED', label: 'Cancelados' }
-          ].map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id as any)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: filter === f.id ? '#fff' : 'transparent',
-                color: filter === f.id ? '#2563eb' : '#64748b',
-                fontWeight: filter === f.id ? 700 : 500,
-                fontSize: 13,
-                cursor: 'pointer',
-                boxShadow: filter === f.id ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
+    <div className="animate-fade-in-up">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Mis Turnos</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Historial de tus pedidos y estado de entrega.</p>
         </div>
+        
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto w-full md:w-auto hide-scrollbar">
+            {[
+              { id: 'ALL', label: 'Todos' },
+              { id: 'PENDING', label: 'Pendientes' },
+              { id: 'COMPLETED', label: 'Entregados' },
+              { id: 'CANCELLED', label: 'Cancelados' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id as any)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                  filter === f.id 
+                    ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm border border-slate-200/50 dark:border-slate-600' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => refetchAppts()} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14, color: '#475569', fontWeight: 600 }}>
-          🔄 Actualizar
-        </button>
+          <button 
+            onClick={() => refetchAppts()} 
+            className="hidden md:flex px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            Refrescar
+          </button>
+        </div>
       </div>
 
       <ErrorBoundary>
         {(() => {
           if (loadingAppts) {
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="space-y-4">
                 <AppointmentSkeleton />
                 <AppointmentSkeleton />
                 <AppointmentSkeleton />
@@ -108,27 +110,27 @@ const MyAppointmentsTab: React.FC<MyAppointmentsTabProps> = ({ onCreateNewClick,
 
           if (filteredAppointments.length === 0) {
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: '#fff', borderRadius: 16, border: '1px dashed #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+              <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm">
                 {emptyAnimData ? (
-                  <Lottie animationData={emptyAnimData} style={{ width: 180, height: 180, marginBottom: 10 }} />
+                  <Lottie animationData={emptyAnimData} style={{ width: 200, height: 200 }} />
                 ) : (
-                  <div style={{ fontSize: 60, marginBottom: 10 }}>📭</div>
+                  <div className="text-7xl mb-4">📭</div>
                 )}
-                <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b', fontWeight: 700 }}>
-                  {filter === 'ALL' ? 'No tienes turnos registrados' : 'No hay turnos en este estado'}
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                  {filter === 'ALL' ? 'Aún no tienes turnos' : 'No hay turnos en este estado'}
                 </h3>
-                <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: 14, textAlign: 'center', maxWidth: 400 }}>
+                <p className="text-slate-500 dark:text-slate-400 text-center max-w-md mb-8">
                   {filter === 'ALL' 
-                    ? 'Explora el catálogo de medicamentos y crea tu primer turno para recibirlos en tu sede preferida.'
+                    ? 'Explora el catálogo de medicamentos y crea tu primer turno para retirarlo en tu sede más cercana.'
                     : 'Intenta cambiar los filtros para ver otros turnos en tu historial.'}
                 </p>
                 {filter === 'ALL' && (
-                  <button onClick={onCreateNewClick}
-                    style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', cursor: 'pointer', fontWeight: 600, fontSize: 14, boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'transform 0.2s' }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
+                  <button 
+                    onClick={onCreateNewClick}
+                    className="px-8 py-3.5 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 flex items-center gap-2"
                   >
-                    + Crear mi primer turno
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    Crear mi primer turno
                   </button>
                 )}
               </div>
@@ -136,31 +138,44 @@ const MyAppointmentsTab: React.FC<MyAppointmentsTabProps> = ({ onCreateNewClick,
           }
 
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {filteredAppointments.map((apt: AppointmentDto) => {
-                const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: '#64748b' };
+                const statusInfo = STATUS_LABELS[apt.status] || { label: apt.statusName, color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200' };
+                
                 return (
-                  <div key={apt.id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
-                      <div>
-                        <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 16, color: '#1e293b' }}>Turno #{apt.id}</p>
-                        <p style={{ margin: '0 0 2px', fontSize: 14, color: '#64748b' }}>🏪 {apt.sedeName}</p>
-                        <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
-                          📅 Creado: {new Date(apt.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  <div key={apt.id} className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md hover:border-emerald-100 dark:hover:border-emerald-500/50 transition-all duration-200 flex flex-col h-full relative overflow-hidden">
+                    
+                    {/* Decorative accent based on status */}
+                    <div className={`absolute top-0 left-0 w-1.5 h-full ${statusInfo.bg.replace('50', '400')}`} />
+                    
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="pl-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">Turno #{apt.id}</h4>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.bg} ${statusInfo.border} ${statusInfo.color}`}>
+                            {statusInfo.label}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                          {apt.sedeName}
                         </p>
                       </div>
-                      <span style={{ background: statusInfo.color + '20', color: statusInfo.color, borderRadius: 20, padding: '4px 14px', fontWeight: 700, fontSize: 13, border: `1px solid ${statusInfo.color}40` }}>
-                        {statusInfo.label}
-                      </span>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-0.5">Fecha de Creación</p>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          {new Date(apt.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
 
                     {apt.details && apt.details.length > 0 && (
-                      <div style={{ marginTop: 14, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
-                        <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Medicamentos solicitados:</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      <div className="pl-2 mt-2 mb-5">
+                        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Medicamentos Solicitados</p>
+                        <div className="flex flex-wrap gap-2">
                           {apt.details.map((d: any) => (
-                            <span key={d.id} style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 6, padding: '3px 10px', fontSize: 13 }}>
-                              {d.drugName} × {d.quantity}
+                            <span key={d.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold">
+                              <span className="text-emerald-600 font-black">{d.quantity}x</span> {d.drugName}
                             </span>
                           ))}
                         </div>
@@ -168,19 +183,27 @@ const MyAppointmentsTab: React.FC<MyAppointmentsTabProps> = ({ onCreateNewClick,
                     )}
 
                     {apt.observaciones && (
-                      <div style={{ marginTop: 10, background: '#fefce8', borderRadius: 8, padding: '8px 12px' }}>
-                        <p style={{ margin: 0, fontSize: 13, color: '#854d0e' }}>💬 {apt.observaciones}</p>
+                      <div className="pl-2 mt-auto mb-4">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl p-3 flex gap-2">
+                          <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">{apt.observaciones}</p>
+                        </div>
                       </div>
                     )}
 
                     {apt.fechaEntrega && (
-                      <p style={{ marginTop: 8, fontSize: 13, color: '#16a34a', fontWeight: 600 }}>
-                        📦 Fecha de entrega: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
-                      </p>
+                      <div className="pl-2 mt-auto mb-4">
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl p-3 flex gap-2 items-center">
+                          <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          <p className="text-sm text-emerald-700 dark:text-emerald-400 font-bold">
+                            Entregado el: {new Date(apt.fechaEntrega).toLocaleDateString('es-CO')}
+                          </p>
+                        </div>
+                      </div>
                     )}
 
-                    {/* ── QR del turno ── */}
-                    <div style={{ marginTop: 16, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+                    {/* QR Component */}
+                    <div className="mt-auto pt-5 border-t border-slate-100 dark:border-slate-700 pl-2">
                       <AppointmentQrCard appointment={apt} />
                     </div>
                   </div>

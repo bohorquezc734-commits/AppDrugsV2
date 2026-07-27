@@ -5,6 +5,7 @@ import { gestoresService } from '../../services/gestores';
 import { drugsService } from '../../services/drugs';
 import { appointmentsService } from '../../services/appointments';
 import { inventoriesService } from '../../services/inventories';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface AdminOverviewTabProps {
   onNavigate?: (tab: string) => void;
@@ -112,6 +113,33 @@ const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigate }) => {
           </div>
         </div>
       )}
+
+      {/* Analytics Chart */}
+      <div className="mt-8 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6">Métricas Generales</h3>
+        <div style={{ width: '100%', height: 350 }}>
+          <ResponsiveContainer>
+            <BarChart
+              data={[
+                { name: 'Usuarios', total: stats.users },
+                { name: 'Sedes', total: stats.sedes },
+                { name: 'Medicamentos', total: stats.drugs },
+                { name: 'Turnos', total: stats.appointments },
+              ]}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+              <Tooltip 
+                cursor={{ fill: 'var(--sidebar-item-hover)' }}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: 'var(--surface)', color: 'var(--text-primary)' }}
+              />
+              <Bar dataKey="total" fill="var(--accent)" radius={[6, 6, 0, 0]} barSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };
