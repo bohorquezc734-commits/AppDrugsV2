@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,11 +6,15 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import 'react-toastify/dist/ReactToastify.css';
 import Premium3DLogin from './components/Common/Premium3DLogin';
 import Register from './pages/Register';
-import AdminDashboard from './pages/AdminDashboard';
-import UserDashboard from './pages/UserDashboard';
 import { authService } from './services/auth';
 import { DrugiAssistant } from './components/Drugi/DrugiAssistant';
-import PharmacistDashboard from './pages/PharmacistDashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import SkeletonLoader from './components/Common/SkeletonLoader';
+
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const PharmacistDashboard = lazy(() => import('./pages/PharmacistDashboard'));
 
 // Configuración profesional del QueryClient
 const queryClient = new QueryClient({
@@ -48,7 +52,7 @@ const RoleBasedDashboard: React.FC = () => {
 // 🤖 Asistente: oculto solo en login y registro
 const DrugiWrapper: React.FC = () => {
   const { pathname } = useLocation();
-  const authRoutes = ['/login', '/register'];
+  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
   if (authRoutes.includes(pathname)) return null;
   return <DrugiAssistant />;
 };
@@ -61,14 +65,24 @@ function App() {
         <Routes>
           <Route path="/login" element={<Premium3DLogin />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
-          {/* 🔐 Rutas protegidas */}
-          <Route path="/dashboard" element={<PrivateRoute><RoleBasedDashboard /></PrivateRoute>} />
+          {/* 🔐 Rutas protegidas con Lazy Loading */}
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <Suspense fallback={<SkeletonLoader />}>
+                <RoleBasedDashboard />
+              </Suspense>
+            </PrivateRoute>
+          } />
           <Route
             path="/user-dashboard"
             element={
               <PrivateRoute>
-                <UserDashboard />
+                <Suspense fallback={<SkeletonLoader />}>
+                  <UserDashboard />
+                </Suspense>
               </PrivateRoute>
             }
           />

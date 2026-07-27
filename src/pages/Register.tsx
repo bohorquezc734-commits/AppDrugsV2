@@ -30,12 +30,6 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   
-  // Focus states
-  const [focusName, setFocusName] = useState(false);
-  const [focusEmail, setFocusEmail] = useState(false);
-  const [focusPwd, setFocusPwd] = useState(false);
-  const [focusRole, setFocusRole] = useState(false);
-
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,230 +47,129 @@ const Register: React.FC = () => {
     }
   };
 
-  const inputStyle = (isFocused: boolean) => ({
-    width: '100%',
-    padding: '11px 14px',
-    borderRadius: 10,
-    border: `1.5px solid ${isFocused ? '#2563eb' : '#e2e8f0'}`,
-    fontSize: 14,
-    color: '#1e293b',
-    outline: 'none',
-    background: isFocused ? '#f8fbff' : '#f9fafb',
-    transition: 'all 0.2s',
-    boxShadow: isFocused ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
-    boxSizing: 'border-box' as any,
-  });
-
-  const labelStyle = {
-    display: 'block', 
-    fontSize: 13, 
-    fontWeight: 600,
-    color: '#374151', 
-    marginBottom: 6,
-  };
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'radial-gradient(ellipse at 60% 20%, #dbeafe 0%, #eef2fb 45%, #f0fdf4 100%)',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      padding: '24px',
-    }}>
-      {/* Card */}
-      <div style={{
-        width: '100%',
-        maxWidth: 420,
-        background: '#ffffff',
-        borderRadius: 20,
-        boxShadow: '0 20px 60px rgba(37,99,235,0.12), 0 4px 16px rgba(0,0,0,0.06)',
-        padding: '40px 36px 32px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Top accent line */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 4,
-          background: 'linear-gradient(90deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%)',
-        }} />
+    <div className="relative min-h-screen bg-slate-900 flex items-center justify-end px-8 md:px-24 overflow-hidden font-sans">
+      
+      {/* Background Animated Blobs */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+        <div className="relative w-full max-w-4xl mx-auto h-96">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+      </div>
 
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 64, height: 64,
-            background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-            borderRadius: 18,
-            boxShadow: '0 8px 24px rgba(37,99,235,0.35)',
-            marginBottom: 14,
-          }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Glassmorphism Form Container */}
+      <div className="relative z-10 w-full max-w-md p-10 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl">
+        
+        <div className="mb-8 text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 mx-auto mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <div style={{ fontWeight: 800, fontSize: 24, color: '#1e293b', letterSpacing: '-0.5px', lineHeight: 1 }}>
-            Crear cuenta
-          </div>
-          <div style={{ fontSize: 13, color: '#64748b', marginTop: 6, fontWeight: 400 }}>
-            Únete al Sistema de Gestión Farmacéutica
-          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Crear cuenta</h1>
+          <p className="text-slate-300 mt-2 text-sm font-medium">Únete al Sistema de Gestión Farmacéutica</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-5">
           
-          {/* Full Name */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>
-              Nombre Completo <span style={{ color: '#ef4444' }}>*</span>
+          <div>
+            <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Nombre Completo <span className="text-emerald-400">*</span>
             </label>
-            <input
-              type="text"
+            <input 
+              type="text" 
               value={form.fullName}
-              onChange={e => setForm({ ...form, fullName: e.target.value })}
-              onFocus={() => setFocusName(true)}
-              onBlur={() => setFocusName(false)}
+              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+              className="w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-400"
               placeholder="Juan Pérez"
               required
-              style={inputStyle(focusName)}
             />
           </div>
 
-          {/* Email */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>
-              Correo <span style={{ color: '#ef4444' }}>*</span>
+          <div>
+            <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Correo Electrónico <span className="text-emerald-400">*</span>
             </label>
-            <input
-              type="email"
+            <input 
+              type="email" 
               value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
-              onFocus={() => setFocusEmail(true)}
-              onBlur={() => setFocusEmail(false)}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-400"
               placeholder="nombre@ejemplo.com"
               required
-              style={inputStyle(focusEmail)}
             />
           </div>
-
-          {/* Password field */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>
-              Contraseña <span style={{ color: '#ef4444' }}>*</span>
+          
+          <div>
+            <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Contraseña <span className="text-emerald-400">*</span>
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
+            <div className="relative">
+              <input 
                 type={showPwd ? 'text' : 'password'}
                 value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                onFocus={() => setFocusPwd(true)}
-                onBlur={() => setFocusPwd(false)}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-400 pr-12"
                 placeholder="••••••••"
                 required
                 minLength={8}
-                style={{
-                  ...inputStyle(focusPwd),
-                  paddingRight: 42,
-                }}
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
-                style={{
-                  position: 'absolute', right: 12, top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none', border: 'none',
-                  color: '#94a3b8', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center',
-                  padding: 2,
-                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
               >
                 <EyeIcon open={showPwd} />
               </button>
             </div>
-            <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 6, lineHeight: 1.4 }}>
+            <p className="text-xs text-slate-400 mt-1.5 ml-1">
               Mínimo 8 caracteres con mayúscula, minúscula y número.
             </p>
           </div>
 
-          {/* Role */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={labelStyle}>
-              Rol <span style={{ color: '#ef4444' }}>*</span>
+          <div>
+            <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Rol <span className="text-emerald-400">*</span>
             </label>
             <select
               value={form.role}
-              onChange={e => setForm({ ...form, role: e.target.value })}
-              onFocus={() => setFocusRole(true)}
-              onBlur={() => setFocusRole(false)}
-              style={inputStyle(focusRole)}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+              className="w-full px-5 py-3 bg-white/10 border border-white/20 text-white rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 appearance-none cursor-pointer"
+              style={{
+                /* El fondo en las opciones no hereda el glassmorphism tan fácil en HTML puro */
+              }}
             >
-              <option value="User">Usuario (Afiliado)</option>
-              <option value="Pharmacist">Gestor Farmacéutico</option>
-              <option value="Admin">Administrador</option>
+              <option value="User" className="text-slate-900">Usuario (Afiliado)</option>
+              <option value="Pharmacist" className="text-slate-900">Gestor Farmacéutico</option>
+              <option value="Admin" className="text-slate-900">Administrador</option>
             </select>
           </div>
 
-          {/* Submit button */}
-          <button
+          <button 
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '13px',
-              background: loading
-                ? '#93c5fd'
-                : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 12,
-              fontWeight: 700,
-              fontSize: 15,
-              letterSpacing: '0.3px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,0.35)',
-              transition: 'all 0.2s',
-              marginBottom: 16,
-            }}
-            onMouseEnter={e => {
-              if (!loading) (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-            }}
+            className="w-full py-4 mt-2 bg-emerald-500 text-white rounded-full font-bold text-lg shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {loading ? 'Registrando...' : 'REGISTRARSE'}
+            {loading ? 'Registrando...' : 'CREAR CUENTA'}
           </button>
         </form>
 
         {/* Divider + Login */}
-        <div style={{
-          borderTop: '1px solid #f1f5f9',
-          marginTop: 16,
-          paddingTop: 16,
-          textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 13, color: '#64748b' }}>¿Ya tienes cuenta? </span>
+        <div className="mt-6 pt-6 border-t border-white/10 text-center">
+          <span className="text-sm text-slate-300">¿Ya tienes cuenta? </span>
           <Link
             to="/login"
-            style={{
-              fontSize: 13, fontWeight: 700,
-              color: '#2563eb',
-              textDecoration: 'none',
-            }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}
+            className="text-sm font-bold text-emerald-400 hover:text-emerald-300 hover:underline transition-colors"
           >
             Inicia sesión aquí
           </Link>
         </div>
+
       </div>
     </div>
   );

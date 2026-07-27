@@ -84,7 +84,7 @@ const AdminAppointmentsTab: React.FC = () => {
                   <strong>Medicamentos:</strong> {apt.details.map(d => `${d.drugName} (x${d.quantity})`).join(', ')}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-center">
-                  <div className="w-48">
+                  <div className="w-full max-w-sm">
                     <AppointmentQrCard appointment={apt} />
                   </div>
                 </div>

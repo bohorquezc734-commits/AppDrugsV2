@@ -25,10 +25,33 @@ const IconCheck = () => (
   </svg>
 );
 
+const IconSun = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5" />
+    <line x1="12" y1="1" x2="12" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="23" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="1" y1="12" x2="3" y2="12" />
+    <line x1="21" y1="12" x2="23" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+);
+
+const IconMoon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
+
 const Topbar: React.FC<TopbarProps> = ({ section }) => {
   const user = authService.getUser();
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const initials = user?.fullName
@@ -76,6 +99,19 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
     }
   };
 
+  const handleToggleTheme = () => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
   return (
     <header style={{
       height: 'var(--topbar-height)',
@@ -100,6 +136,33 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
       {/* Right side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         
+        {/* Theme Toggle */}
+        <button 
+          onClick={handleToggleTheme}
+          style={{
+            position: 'relative',
+            width: 36, height: 36,
+            borderRadius: '50%',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.background = 'var(--surface-hover)';
+            (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.background = 'var(--surface)';
+            (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
+          }}
+          title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {isDarkMode ? <IconSun /> : <IconMoon />}
+        </button>
+
         {/* Notifications Container */}
         <div style={{ position: 'relative' }} ref={dropdownRef}>
           {/* Notification bell */}
@@ -110,7 +173,7 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
               width: 36, height: 36,
               borderRadius: '50%',
               border: '1px solid var(--border)',
-              background: showDropdown ? 'var(--accent-light)' : '#fff',
+              background: showDropdown ? 'var(--accent-light)' : 'var(--surface)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: showDropdown ? 'var(--accent)' : 'var(--text-secondary)',
               cursor: 'pointer',
@@ -121,7 +184,7 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
               (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = showDropdown ? 'var(--accent-light)' : '#fff';
+              (e.currentTarget as HTMLElement).style.background = showDropdown ? 'var(--accent-light)' : 'var(--surface)';
               (e.currentTarget as HTMLElement).style.color = showDropdown ? 'var(--accent)' : 'var(--text-secondary)';
             }}
           >
@@ -152,10 +215,10 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
               top: 'calc(100% + 12px)',
               right: 0,
               width: 320,
-              background: '#fff',
+              background: 'var(--surface)',
               borderRadius: 16,
               boxShadow: '0 10px 40px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.05)',
-              border: '1px solid #e2e8f0',
+              border: '1px solid var(--border)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
@@ -164,12 +227,12 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
               {/* Header */}
               <div style={{
                 padding: '16px',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: '1px solid var(--border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
                   Notificaciones
                 </h3>
                 {unreadCount > 0 && (
@@ -191,18 +254,18 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
                       key={notification.id} 
                       style={{
                         padding: '14px 16px',
-                        borderBottom: '1px solid #f8fafc',
-                        background: notification.isRead ? '#fff' : '#f0f9ff',
+                        borderBottom: '1px solid var(--border-light)',
+                        background: notification.isRead ? 'var(--surface)' : 'var(--surface-hover)',
                         display: 'flex',
                         gap: 12,
                         transition: 'background 0.2s',
                         position: 'relative'
                       }}
                       onMouseEnter={e => {
-                        if (notification.isRead) (e.currentTarget as HTMLElement).style.background = '#f8fafc';
+                        if (notification.isRead) (e.currentTarget as HTMLElement).style.background = 'var(--surface-hover)';
                       }}
                       onMouseLeave={e => {
-                        if (notification.isRead) (e.currentTarget as HTMLElement).style.background = '#fff';
+                        if (notification.isRead) (e.currentTarget as HTMLElement).style.background = 'var(--surface)';
                       }}
                     >
                       {/* Icon depending on Type */}
@@ -221,10 +284,10 @@ const Topbar: React.FC<TopbarProps> = ({ section }) => {
 
                       {/* Content */}
                       <div style={{ flex: 1, paddingRight: 24 }}>
-                        <p style={{ margin: '0 0 4px 0', fontSize: 13, color: '#1e293b', lineHeight: 1.4, fontWeight: notification.isRead ? 400 : 600 }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.4, fontWeight: notification.isRead ? 400 : 600 }}>
                           {notification.message}
                         </p>
-                        <span style={{ fontSize: 11, color: '#64748b' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                           {new Date(notification.createdAt).toLocaleDateString()} a las {new Date(notification.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
                       </div>

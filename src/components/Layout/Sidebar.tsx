@@ -192,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
           </svg>
         </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#1e293b', letterSpacing: '-0.5px', lineHeight: 1 }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', letterSpacing: '-0.5px', lineHeight: 1 }}>
             Drugs
           </div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.5px', textTransform: 'uppercase', marginTop: 2 }}>
@@ -215,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full border-none text-left mb-1 transition-all duration-200 ${
                 isActive 
                   ? 'bg-emerald-600 text-white font-semibold shadow-md shadow-emerald-600/20' 
-                  : 'bg-transparent text-slate-600 font-medium hover:bg-emerald-600/10 hover:text-emerald-700'
+                  : 'bg-transparent text-slate-600 dark:text-slate-300 font-medium hover:bg-emerald-600/10 hover:text-emerald-700 dark:hover:text-emerald-400'
               }`}
             >
               <span style={{ opacity: isActive ? 1 : 0.7, display: 'flex', alignItems: 'center' }}>
@@ -248,7 +248,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
       <div style={{ borderTop: '1px solid var(--sidebar-border)', padding: '10px 10px 6px' }}>
         {/* Configuración */}
         <button 
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-full border-none bg-transparent text-slate-600 font-medium text-left transition-all hover:bg-emerald-600/10 hover:text-emerald-700 mb-2"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-full border-none bg-transparent text-slate-600 dark:text-slate-300 font-medium text-left transition-all hover:bg-emerald-600/10 hover:text-emerald-700 dark:hover:text-emerald-400 mb-2"
           onClick={() => onTabChange('configuracion')}
         >
           <IconSettings /> Configuración
@@ -266,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
               padding: '8px 10px',
               borderRadius: 8,
               border: '1px solid var(--sidebar-border)',
-              background: userMenuOpen ? 'var(--accent-light)' : '#f8fafc',
+              background: userMenuOpen ? 'var(--accent-light)' : 'var(--surface)',
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
@@ -292,7 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
               position: 'absolute',
               bottom: 'calc(100% + 6px)',
               left: 0, right: 0,
-              background: '#fff',
+              background: 'var(--surface)',
               border: '1px solid var(--border)',
               borderRadius: 10,
               boxShadow: 'var(--shadow-lg)',
@@ -320,7 +320,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, role, cartCou
                   textAlign: 'left',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#fef2f2'}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-hover)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
                 <IconLogout /> Cerrar Sesión
