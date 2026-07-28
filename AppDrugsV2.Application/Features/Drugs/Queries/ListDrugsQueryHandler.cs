@@ -1,11 +1,13 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Features.Drugs.DTOs;
 
+using AppDrugsV2.Application.Common.Results;
+
 namespace AppDrugsV2.Application.Features.Drugs.Queries
 {
-    public class ListDrugsQueryHandler : IRequestHandler<ListDrugsQuery, List<DrugDto>>
+    public class ListDrugsQueryHandler : IRequestHandler<ListDrugsQuery, PagedResult<DrugDto>>
     {
         private readonly IApplicationDbContext _context;
 
@@ -14,7 +16,7 @@ namespace AppDrugsV2.Application.Features.Drugs.Queries
             _context = context;
         }
 
-        public async Task<List<DrugDto>> Handle(ListDrugsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<DrugDto>> Handle(ListDrugsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Drugs
                 .Where(d => d.IsActive)
@@ -38,12 +40,14 @@ namespace AppDrugsV2.Application.Features.Drugs.Queries
                 query = query.Where(d => d.RequiresPrescription == request.RequiresPrescription);
             }
 
+            var totalCount = await query.CountAsync(cancellationToken);
+
             var drugs = await query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            return drugs.Select(d => new DrugDto
+            var items = drugs.Select(d => new DrugDto
             {
                 Id = d.Id,
                 Name = d.Name,
@@ -57,6 +61,8 @@ namespace AppDrugsV2.Application.Features.Drugs.Queries
                 IsExpired = d.IsExpired(),
                 IsActive = d.IsActive
             }).ToList();
+
+            return new PagedResult<DrugDto>(items, totalCount, request.Page, request.PageSize);
         }
     }
 }

@@ -29,6 +29,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
 
             // Buscar el turno
             var appointment = await _context.Appointments
+                .Include(a => a.Details)
                 .FirstOrDefaultAsync(a => a.Id == request.AppointmentId && a.IsActive, cancellationToken);
 
             if (appointment == null)
@@ -53,6 +54,30 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                         notificationType = NotificationType.Info;
                         break;
                     case AppointmentStatus.Entregado:
+                        if (appointment.Status == AppointmentStatus.Recibido)
+                        {
+                            appointment.Confirmar();
+                        }
+                        
+                        // Deducción real de stock
+                        foreach (var detail in appointment.Details)
+                        {
+                            var inventory = await _context.Inventories
+                                .FirstOrDefaultAsync(i => i.Id == detail.InventoryId && i.IsActive, cancellationToken);
+
+                            if (inventory == null)
+                                return Result<bool>.Failure($"El inventario asociado (ID: {detail.InventoryId}) no existe o está inactivo.");
+
+                            try
+                            {
+                                inventory.RemoveStock(detail.Quantity);
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                return Result<bool>.Failure($"Stock insuficiente en el inventario (ID: {detail.InventoryId}) para entregar el pedido.");
+                            }
+                        }
+
                         appointment.Entregar();
                         notificationMessage = string.Format(AppConstants.NotificationMessages.AppointmentEntregado, appointment.Id);
                         notificationType = NotificationType.Success;
