@@ -54,5 +54,38 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateGestorCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { error = AppConstants.Messages.IdMismatch });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Sede actualizada exitosamente", id = result.Value });
+
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _mediator.Send(new DeleteGestorCommand { Id = id });
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Sede eliminada exitosamente (Soft Delete)" });
+
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
     }
 }

@@ -1,10 +1,12 @@
-﻿using MediatR;
+using MediatR;
 using AppDrugsV2.Application.Features.Appointments.DTOs;
 using AppDrugsV2.Domain.Enums;
 
+using AppDrugsV2.Application.Common.Results;
+
 namespace AppDrugsV2.Application.Features.Appointments.Queries
 {
-    public class ListAppointmentsQuery : IRequest<List<AppointmentDto>>
+    public class ListAppointmentsQuery : IRequest<PagedResult<AppointmentDto>>
     {
         public int? UserId { get; set; }
         public int? GestorFarmaceuticoId { get; set; }

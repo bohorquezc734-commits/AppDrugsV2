@@ -1,12 +1,14 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using AppDrugsV2.Application.Common.Interfaces;
 using AppDrugsV2.Application.Features.Appointments.DTOs;
 using AppDrugsV2.Domain.Enums;
 
+using AppDrugsV2.Application.Common.Results;
+
 namespace AppDrugsV2.Application.Features.Appointments.Queries
 {
-    public class ListAppointmentsQueryHandler : IRequestHandler<ListAppointmentsQuery, List<AppointmentDto>>
+    public class ListAppointmentsQueryHandler : IRequestHandler<ListAppointmentsQuery, PagedResult<AppointmentDto>>
     {
         private readonly IApplicationDbContext _context;
 
@@ -15,7 +17,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
             _context = context;
         }
 
-        public async Task<List<AppointmentDto>> Handle(ListAppointmentsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<AppointmentDto>> Handle(ListAppointmentsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Appointments
                 .Include(a => a.User)
@@ -40,6 +42,8 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
 
             if (request.ToDate.HasValue)
                 query = query.Where(a => a.CreatedAt <= request.ToDate.Value);
+
+            var totalCount = await query.CountAsync(cancellationToken);
 
             var appointments = await query
                 .OrderByDescending(a => a.CreatedAt)
@@ -70,7 +74,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Queries
                 })
                 .ToListAsync(cancellationToken);
 
-            return appointments;
+            return new PagedResult<AppointmentDto>(appointments, totalCount, request.Page, request.PageSize);
         }
     }
 }

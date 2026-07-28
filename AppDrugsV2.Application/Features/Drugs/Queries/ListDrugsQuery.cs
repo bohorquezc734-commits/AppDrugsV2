@@ -1,9 +1,11 @@
-﻿using MediatR;
+using MediatR;
 using AppDrugsV2.Application.Features.Drugs.DTOs;
+
+using AppDrugsV2.Application.Common.Results;
 
 namespace AppDrugsV2.Application.Features.Drugs.Queries
 {
-    public class ListDrugsQuery : IRequest<List<DrugDto>>
+    public class ListDrugsQuery : IRequest<PagedResult<DrugDto>>
     {
         public string? SearchTerm { get; set; }
         public string? Category { get; set; }

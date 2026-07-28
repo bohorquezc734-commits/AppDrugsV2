@@ -136,5 +136,37 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+
+        [HttpPut("users/{id}/role")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        public async Task<IActionResult> ChangeUserRole(int id, [FromBody] ChangeUserRoleCommand command)
+        {
+            command.UserId = id;
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Rol actualizado exitosamente" });
+
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        [HttpPatch("users/{id}/status")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        public async Task<IActionResult> ToggleUserStatus(int id, [FromBody] ToggleUserStatusCommand command)
+        {
+            command.UserId = id;
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Estado del usuario actualizado exitosamente" });
+
+            if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
+                return NotFound(new { error = result.Error });
+
+            return BadRequest(new { error = result.Error });
+        }
     }
 }

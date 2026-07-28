@@ -62,6 +62,11 @@ namespace AppDrugsV2.Domain.Entities
         public void Deactivate() => IsActive = false;
         public void Activate() => IsActive = true;
 
+        public void UpdateRole(UserRole newRole)
+        {
+            Role = newRole;
+        }
+
         public void SetResetPasswordToken(string token, DateTime expiresAt)
         {
             ResetPasswordToken = token;

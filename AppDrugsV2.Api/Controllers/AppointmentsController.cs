@@ -118,5 +118,36 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+
+        [HttpGet("{id}/archivo")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            try
+            {
+                var query = new DownloadAppointmentFileQuery { AppointmentId = id };
+                var result = await _mediator.Send(query);
+
+                if (result.IsSuccess)
+                {
+                    // Limpiar caracteres extraños que puedan romper los headers HTTP en el backend (Swagger)
+                    var safeFileName = new string(result.Value!.FileName.Where(c => !char.IsControl(c)).ToArray());
+                    safeFileName = safeFileName.Replace("\"", "").Replace("'", "");
+                    
+                    var safeContentType = new string(result.Value!.ContentType.Where(c => !char.IsControl(c)).ToArray());
+
+                    return File(result.Value!.Content, safeContentType, safeFileName);
+                }
+
+                if (result.Error != null && result.Error.Contains(AppConstants.Messages.NotExistsKeyword))
+                    return NotFound(new { error = result.Error });
+
+                return BadRequest(new { error = result.Error });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Ocurrió un error al descargar el archivo: " + ex.Message });
+            }
+        }
     }
 }
