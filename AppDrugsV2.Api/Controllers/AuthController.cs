@@ -168,5 +168,15 @@ namespace AppDrugsV2.Api.Controllers
 
             return BadRequest(new { error = result.Error });
         }
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return Unauthorized(new { error = result.Error });
+        }
     }
 }

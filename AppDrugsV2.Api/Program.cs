@@ -7,6 +7,7 @@ using AppDrugsV2.Application;
 using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Infrastructure;
 using AppDrugsV2.Infrastructure.Hubs;
+using AppDrugsV2.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +107,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

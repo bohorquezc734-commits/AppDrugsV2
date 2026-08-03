@@ -14,6 +14,8 @@ namespace AppDrugsV2.Domain.Entities
         public DateTime? LastLoginAt { get; private set; }
         public string? ResetPasswordToken { get; private set; }
         public DateTime? ResetPasswordTokenExpiresAt { get; private set; }
+        public string? RefreshToken { get; private set; }
+        public DateTime? RefreshTokenExpiresAt { get; private set; }
 
         // Constructor privado para EF Core (con valores por defecto)
         private User()
@@ -77,6 +79,18 @@ namespace AppDrugsV2.Domain.Entities
         {
             ResetPasswordToken = null;
             ResetPasswordTokenExpiresAt = null;
+        }
+
+        public void SetRefreshToken(string token, DateTime expiresAt)
+        {
+            RefreshToken = token;
+            RefreshTokenExpiresAt = expiresAt;
+        }
+
+        public void ClearRefreshToken()
+        {
+            RefreshToken = null;
+            RefreshTokenExpiresAt = null;
         }
     }
 }
