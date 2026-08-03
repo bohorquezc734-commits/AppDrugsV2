@@ -42,23 +42,31 @@ namespace AppDrugsV2.Application.Features.Auth.Queries
 
             // 4. Registrar el login
             user.RecordLogin();
-            await _context.SaveChangesAsync(cancellationToken);
 
-            // 5. Generar token JWT
+            // 5. Generar token JWT (corta duración)
             var token = _jwtTokenGenerator.GenerateToken(
                 user.Id,
                 user.Email,
                 user.Role.ToString()
             );
 
-            // 6. Crear respuesta
+            // 6. Generar Refresh Token seguro (64 chars) con 7 días de vida
+            var refreshToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+            var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            user.SetRefreshToken(refreshToken, refreshTokenExpiresAt);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // 7. Crear respuesta
             var response = new LoginResponse
             {
-                UserId = user.Id,
-                FullName = user.FullName,
-                Role = user.Role.ToString(),
-                Token = token,
-                ExpiresAt = DateTime.UtcNow.AddHours(AppConstants.Jwt.TokenExpirationHours)
+                UserId               = user.Id,
+                FullName             = user.FullName,
+                Role                 = user.Role.ToString(),
+                Token                = token,
+                ExpiresAt            = DateTime.UtcNow.AddHours(AppConstants.Jwt.TokenExpirationHours),
+                RefreshToken         = refreshToken,
+                RefreshTokenExpiresAt = refreshTokenExpiresAt
             };
 
             return Result<LoginResponse>.Success(response);
