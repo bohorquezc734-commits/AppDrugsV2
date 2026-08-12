@@ -11,13 +11,16 @@ using AppDrugsV2.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ CORS para desarrollo local (acepta React en http y https)
+// ✅ CORS para desarrollo local (acepta React en http y https, y desde IP LAN para celulares)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(AppConstants.Cors.PolicyName,
         policy =>
         {
-            policy.WithOrigins(AppConstants.Cors.FrontendOrigin, "http://localhost:5173")
+            policy.WithOrigins(
+                      AppConstants.Cors.FrontendOrigin,       // http://localhost:3000
+                      AppConstants.Cors.FrontendOriginLan,    // http://192.168.1.70:3000
+                      "http://localhost:5173")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
                   .AllowCredentials();
@@ -106,7 +109,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// ⚠️ HTTPS redirect deshabilitado para permitir acceso HTTP desde celulares en red LAN.
+// Reactivar en producción con HTTPS real: app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();

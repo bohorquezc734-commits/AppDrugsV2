@@ -52,7 +52,10 @@ namespace AppDrugsV2.Api.Controllers
                     result.Value.UserId,
                     result.Value.FullName,
                     result.Value.Role,
-                    result.Value.ExpiresAt
+                    result.Value.Token,
+                    result.Value.RefreshToken,
+                    result.Value.ExpiresAt,
+                    result.Value.RefreshTokenExpiresAt
                 });
             }
 

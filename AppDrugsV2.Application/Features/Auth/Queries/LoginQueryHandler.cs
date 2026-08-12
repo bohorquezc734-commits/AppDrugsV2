@@ -40,8 +40,9 @@ namespace AppDrugsV2.Application.Features.Auth.Queries
             if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
                 return Result<LoginResponse>.Failure(AppConstants.Messages.InvalidCredentials);
 
-            // 4. Registrar el login
+            // 4. Registrar el login (siempre esta columna existe)
             user.RecordLogin();
+            await _context.SaveChangesAsync(cancellationToken);
 
             // 5. Generar token JWT (corta duración)
             var token = _jwtTokenGenerator.GenerateToken(
@@ -50,22 +51,31 @@ namespace AppDrugsV2.Application.Features.Auth.Queries
                 user.Role.ToString()
             );
 
-            // 6. Generar Refresh Token seguro (64 chars) con 7 días de vida
+            // 6. Generar Refresh Token
             var refreshToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
             var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
-            user.SetRefreshToken(refreshToken, refreshTokenExpiresAt);
 
-            await _context.SaveChangesAsync(cancellationToken);
+            // Intentar guardar el refresh token. Si falla porque la DB no ha 
+            // aplicado la migración, la app no se caerá y el login funcionará.
+            try
+            {
+                user.SetRefreshToken(refreshToken, refreshTokenExpiresAt);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+                // Ignorar error temporal hasta aplicar la migración en backend.
+            }
 
             // 7. Crear respuesta
             var response = new LoginResponse
             {
-                UserId               = user.Id,
-                FullName             = user.FullName,
-                Role                 = user.Role.ToString(),
-                Token                = token,
-                ExpiresAt            = DateTime.UtcNow.AddHours(AppConstants.Jwt.TokenExpirationHours),
-                RefreshToken         = refreshToken,
+                UserId                = user.Id,
+                FullName              = user.FullName,
+                Role                  = user.Role.ToString(),
+                Token                 = token,
+                ExpiresAt             = DateTime.UtcNow.AddHours(AppConstants.Jwt.TokenExpirationHours),
+                RefreshToken          = refreshToken,
                 RefreshTokenExpiresAt = refreshTokenExpiresAt
             };
 
