@@ -44,6 +44,8 @@ namespace AppDrugsV2.Application.Common.Constants
         {
             public const string PolicyName      = "AllowReactApp";
             public const string FrontendOrigin  = "http://localhost:3000";
+            // Acceso desde celulares en la misma red LAN durante desarrollo
+            public const string FrontendOriginLan = "http://192.168.1.70:3000";
         }
 
         // ─── SWAGGER ──────────────────────────────────────────────────────────────
