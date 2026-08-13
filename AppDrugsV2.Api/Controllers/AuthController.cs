@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using AppDrugsV2.Application.Common.Constants;
 using AppDrugsV2.Application.Features.Auth.Commands;
 using AppDrugsV2.Application.Features.Auth.Queries;
@@ -31,6 +32,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("auth-login")]
         public async Task<IActionResult> Login([FromBody] LoginQuery query)
         {
             var result = await _mediator.Send(query);
@@ -77,6 +79,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("auth-forgot")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
         {
             var result = await _mediator.Send(command);
@@ -130,9 +133,9 @@ namespace AppDrugsV2.Api.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers([FromQuery] GetAllUsersQuery query)
         {
-            var result = await _mediator.Send(new GetAllUsersQuery());
+            var result = await _mediator.Send(query);
 
             if (result.IsSuccess)
                 return Ok(result.Value);

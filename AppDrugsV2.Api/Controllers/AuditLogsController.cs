@@ -19,9 +19,9 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAuditLogs()
+        public async Task<IActionResult> GetAuditLogs([FromQuery] GetAuditLogsQuery query)
         {
-            var result = await _mediator.Send(new GetAuditLogsQuery());
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
     }

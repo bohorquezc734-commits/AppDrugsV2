@@ -1,0 +1,11 @@
+# .dockerignore
+**/.vs
+**/.git
+**/.gitignore
+**/bin
+**/obj
+**/logs
+**/*.user
+**/node_modules
+**/appdrugs-frontend
+**/AppDrugsV2.UnitTests
