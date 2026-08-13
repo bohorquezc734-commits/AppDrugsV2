@@ -14,7 +14,7 @@ namespace AppDrugsV2.Infrastructure.Persistence.Interceptors
     public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         private static readonly string[] _ignoredProperties = { "LastLoginAt", "RefreshToken", "RefreshTokenExpiryTime" };
-        
+
         private readonly ICurrentUserService _currentUserService;
         private readonly List<AuditEntryWrapper> _pendingAuditEntries = new();
 
@@ -42,6 +42,68 @@ namespace AppDrugsV2.Infrastructure.Persistence.Interceptors
             return originalValue;
         }
 
+        /// <summary>
+        /// Resuelve el valor de una propiedad para que sea legible por humanos.
+        /// - Si es un Enum, retorna su nombre de texto (ej: "Recibido" en vez de 1).
+        /// - Si es bool, retorna "Si" o "No".
+        /// - De lo contrario, retorna el valor original.
+        /// </summary>
+        private static object? ResolveHumanValue(object? rawValue)
+        {
+            if (rawValue == null) return null;
+
+            var type = rawValue.GetType();
+
+            if (type.IsEnum)
+                return rawValue.ToString();
+
+            if (rawValue is bool boolValue)
+                return boolValue ? "Si" : "No";
+
+            return rawValue;
+        }
+
+        /// <summary>
+        /// Traduce el nombre tecnico de una propiedad a una etiqueta amigable en espanol.
+        /// </summary>
+        private static readonly Dictionary<string, string> _friendlyNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            // Appointment / Turno
+            { "Status",               "Estado del Turno" },
+            { "GestorFarmaceuticoId", "Gestor Farmaceutico" },
+            { "FechaEntrega",         "Fecha de Entrega" },
+            { "Observaciones",        "Observaciones" },
+            { "IsActive",             "Activo" },
+
+            // Drug / Medicamento
+            { "Name",                 "Nombre" },
+            { "GenericName",          "Nombre Generico" },
+            { "Laboratory",           "Laboratorio" },
+            { "Price",                "Precio" },
+            { "Stock",                "Stock" },
+            { "Category",             "Categoria" },
+            { "RequiresPrescription", "Requiere Receta" },
+            { "ExpirationDate",       "Fecha de Vencimiento" },
+
+            // Inventory
+            { "DrugId",               "Medicamento" },
+            { "Quantity",             "Cantidad" },
+            { "UpdatedAt",            "Ultima Actualizacion" },
+
+            // User
+            { "FullName",             "Nombre Completo" },
+            { "Email",                "Correo Electronico" },
+            { "Role",                 "Rol" },
+            { "PhoneNumber",          "Telefono" },
+
+            // Common
+            { "CreatedAt",            "Fecha de Creacion" },
+            { "UserId",               "Usuario" },
+        };
+
+        private static string GetFriendlyKey(string propertyName)
+            => _friendlyNames.TryGetValue(propertyName, out var friendly) ? friendly : propertyName;
+
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
@@ -61,20 +123,28 @@ namespace AppDrugsV2.Infrastructure.Persistence.Interceptors
 
                 if (entry.State == EntityState.Modified)
                 {
-                    bool hasSignificantChanges = entry.Properties.Any(p => 
-                        p.IsModified && 
+                    bool hasSignificantChanges = entry.Properties.Any(p =>
+                        p.IsModified &&
                         !_ignoredProperties.Contains(p.Metadata.Name));
 
                     if (!hasSignificantChanges)
                         continue;
                 }
 
+                var actionLabel = entry.State switch
+                {
+                    EntityState.Added    => "Creacion",
+                    EntityState.Modified => "Modificacion",
+                    EntityState.Deleted  => "Eliminacion",
+                    _                    => entry.State.ToString()
+                };
+
                 var auditEntry = new AuditLog
                 {
-                    UserId = userId,
+                    UserId     = userId,
                     EntityName = entry.Entity.GetType().Name,
-                    Timestamp = System.DateTime.UtcNow,
-                    Action = entry.State.ToString()
+                    Timestamp  = System.DateTime.UtcNow,
+                    Action     = actionLabel
                 };
 
                 var oldValues = new Dictionary<string, object?>();
@@ -85,23 +155,25 @@ namespace AppDrugsV2.Infrastructure.Persistence.Interceptors
                     string propertyName = property.Metadata.Name;
 
                     if (property.IsTemporary || property.Metadata.IsPrimaryKey() || _ignoredProperties.Contains(propertyName))
-                    {
                         continue;
-                    }
+
+                    string friendlyKey = GetFriendlyKey(propertyName);
 
                     switch (entry.State)
                     {
                         case EntityState.Added:
-                            newValues[propertyName] = GetMaskedValue(propertyName, property.CurrentValue);
+                            newValues[friendlyKey] = ResolveHumanValue(GetMaskedValue(propertyName, property.CurrentValue));
                             break;
+
                         case EntityState.Deleted:
-                            oldValues[propertyName] = GetMaskedValue(propertyName, property.OriginalValue);
+                            oldValues[friendlyKey] = ResolveHumanValue(GetMaskedValue(propertyName, property.OriginalValue));
                             break;
+
                         case EntityState.Modified:
                             if (property.IsModified)
                             {
-                                oldValues[propertyName] = GetMaskedValue(propertyName, property.OriginalValue);
-                                newValues[propertyName] = GetMaskedValue(propertyName, property.CurrentValue);
+                                oldValues[friendlyKey] = ResolveHumanValue(GetMaskedValue(propertyName, property.OriginalValue));
+                                newValues[friendlyKey] = ResolveHumanValue(GetMaskedValue(propertyName, property.CurrentValue));
                             }
                             break;
                     }
@@ -112,28 +184,25 @@ namespace AppDrugsV2.Infrastructure.Persistence.Interceptors
 
                 if (entry.State == EntityState.Added)
                 {
-                    var wrapper = new AuditEntryWrapper
+                    _pendingAuditEntries.Add(new AuditEntryWrapper
                     {
                         AuditLog = auditEntry,
                         PrimaryKeyProperties = entry.Properties.Where(p => p.Metadata.IsPrimaryKey()).ToList()
-                    };
-                    _pendingAuditEntries.Add(wrapper);
+                    });
                 }
                 else
                 {
                     var primaryKey = entry.Properties
                         .Where(p => p.Metadata.IsPrimaryKey())
                         .ToDictionary(p => p.Metadata.Name, p => p.CurrentValue ?? p.OriginalValue);
+
                     auditEntry.PrimaryKey = JsonSerializer.Serialize(primaryKey);
-                    
                     auditEntries.Add(auditEntry);
                 }
             }
 
             if (auditEntries.Any())
-            {
                 context.Set<AuditLog>().AddRange(auditEntries);
-            }
 
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
