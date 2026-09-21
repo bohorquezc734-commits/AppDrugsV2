@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="Rotativa\wkhtmltopdf.exe">
+		<None Include="Rotativa\wkhtmltopdf.exe" Condition="Exists('Rotativa\wkhtmltopdf.exe')">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

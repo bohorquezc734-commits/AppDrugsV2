@@ -21,7 +21,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize] // Todos los usuarios autenticados pueden ver las sedes para crear turnos
+        [Authorize] 
         public async Task<IActionResult> GetAll([FromQuery] ListGestoresQuery query)
         {
             var result = await _mediator.Send(query);
@@ -65,7 +65,7 @@ namespace AppDrugsV2.Api.Controllers
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
-                return Ok(new { message = "Sede actualizada exitosamente", id = result.Value });
+                return Ok(new { message = AppConstants.Messages.GestorUpdated, id = result.Value });
 
             if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
@@ -80,7 +80,7 @@ namespace AppDrugsV2.Api.Controllers
             var result = await _mediator.Send(new DeleteGestorCommand { Id = id });
 
             if (result.IsSuccess)
-                return Ok(new { message = "Sede eliminada exitosamente (Soft Delete)" });
+                return Ok(new { message = AppConstants.Messages.GestorDeleted });
 
             if (result.Error!.Contains(AppConstants.Messages.NotFoundKeyword))
                 return NotFound(new { error = result.Error });
