@@ -20,7 +20,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize] // Todos los usuarios autenticados pueden ver inventario de sedes para crear turnos
+        [Authorize] 
         public async Task<IActionResult> GetAll([FromQuery] ListInventoriesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -55,7 +55,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateInventoryCommand command)
         {
             if (id != command.Id)
@@ -88,7 +88,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPatch("{id}/add-stock")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> AddStock(int id, [FromBody] AddStockCommand command)
         {
             if (id != command.InventoryId)
@@ -106,7 +106,7 @@ namespace AppDrugsV2.Api.Controllers
         }
 
         [HttpPatch("{id}/remove-stock")]
-        [Authorize(Roles = "Admin,Pharmacist")]
+        [Authorize(Roles = AppConstants.Roles.AdminOrPharmacist)]
         public async Task<IActionResult> RemoveStock(int id, [FromBody] RemoveStockCommand command)
         {
             if (id != command.InventoryId)

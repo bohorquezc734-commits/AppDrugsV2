@@ -115,6 +115,8 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string UserRegistered       = "Usuario registrado exitosamente";
             public const string DrugUpdated          = "Medicamento actualizado exitosamente";
             public const string DrugDeleted          = "Medicamento eliminado exitosamente";
+            public const string GestorUpdated        = "Sede actualizada exitosamente";
+            public const string GestorDeleted        = "Sede eliminada exitosamente (Soft Delete)";
             public const string StockUpdated         = "Stock actualizado exitosamente";
             public const string StockAdded           = "Stock agregado exitosamente";
             public const string StockRemoved         = "Stock removido exitosamente";
@@ -155,6 +157,15 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string FullNameRequired     = "Nombre completo es requerido";
             public const string FullNameMaxLengthMsg = "Nombre no debe exceder 100 caracteres";
             public const string RoleInvalid          = "Rol inválido. Debe ser User, Pharmacist o Admin";
+        }
+
+        // ─── MIDDLEWARE ───────────────────────────────────────────────────────────
+        public static class Middleware
+        {
+            public const string NotFoundError          = "El recurso solicitado no fue encontrado.";
+            public const string UnauthorizedError      = "No tiene permisos para realizar esta acción.";
+            public const string InternalServerError    = "Ha ocurrido un error interno. Por favor, intente más tarde.";
+            public const string ContentTypeJson        = "application/json";
         }
 
         // ─── NOTIFICACIONES (mensajes al usuario) ─────────────────────────────────

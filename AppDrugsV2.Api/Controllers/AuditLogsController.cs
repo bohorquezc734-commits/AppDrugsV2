@@ -13,7 +13,7 @@ namespace AppDrugsV2.Api.Controllers
     {
         private readonly IMediator _mediator;
 
-        public AuditLogsController(IMediator mediator)
+        public  AuditLogsController(IMediator mediator)
         {
             _mediator = mediator;
         }

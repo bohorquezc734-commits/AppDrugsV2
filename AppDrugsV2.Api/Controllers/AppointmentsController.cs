@@ -29,8 +29,7 @@ namespace AppDrugsV2.Api.Controllers
         [HttpGet("mis-turnos")]
         public async Task<IActionResult> GetMyAppointments([FromQuery] ListAppointmentsQuery query)
         {
-            // El servicio CurrentUserService debe proveer el UserId
-            // Asumimos que se inyecta o se obtiene de los claims
+          
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userId, out int id))
                 return Unauthorized();
@@ -58,7 +57,6 @@ namespace AppDrugsV2.Api.Controllers
         [Authorize(Roles = AppConstants.Roles.UserOrAdmin)]
         public async Task<IActionResult> Create([FromForm] CreateAppointmentCommand command)
         {
-            // Procesar el archivo en el controlador (NO en Application)
             if (Request.Form.Files.Count > 0)
             {
                 var file = Request.Form.Files[0];
@@ -94,15 +92,7 @@ namespace AppDrugsV2.Api.Controllers
             return BadRequest(new { error = result.Error });
         }
 
-        // ─── GENERACIÓN DE QR ─────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Genera (o regenera) el código QR del turno especificado.
-        /// Persiste el QR en la base de datos y notifica al usuario
-        /// en tiempo real via SignalR (evento "QrReady").
-        /// </summary>
-        /// <param name="id">ID del turno.</param>
-        /// <returns>200 con el QR en Base64 | 404 si el turno no existe | 400 si hay un error de validación.</returns>
+     
         [HttpPost("{id}/qr")]
         [Authorize]
         public async Task<IActionResult> GenerateQr(int id)
@@ -130,7 +120,6 @@ namespace AppDrugsV2.Api.Controllers
 
                 if (result.IsSuccess)
                 {
-                    // Limpiar caracteres extraños que puedan romper los headers HTTP en el backend (Swagger)
                     var safeFileName = new string(result.Value!.FileName.Where(c => !char.IsControl(c)).ToArray());
                     safeFileName = safeFileName.Replace("\"", "").Replace("'", "");
                     

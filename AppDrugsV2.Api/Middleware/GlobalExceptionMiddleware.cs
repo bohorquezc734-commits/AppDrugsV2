@@ -1,12 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using AppDrugsV2.Application.Common.Constants;
 
 namespace AppDrugsV2.Api.Middleware
 {
-    /// <summary>
-    /// Middleware que atrapa cualquier excepción no controlada en el pipeline
-    /// y devuelve un JSON estándar y seguro, sin exponer StackTraces al cliente.
-    /// </summary>
+  
     public class GlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -33,14 +31,14 @@ namespace AppDrugsV2.Api.Middleware
 
         private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            context.Response.ContentType = "application/json";
+            context.Response.ContentType = AppConstants.Middleware.ContentTypeJson;
 
             var (statusCode, message) = exception switch
             {
-                KeyNotFoundException  => (HttpStatusCode.NotFound,            "El recurso solicitado no fue encontrado."),
-                UnauthorizedAccessException => (HttpStatusCode.Unauthorized,  "No tiene permisos para realizar esta acción."),
-                ArgumentException     => (HttpStatusCode.BadRequest,          exception.Message),
-                _                     => (HttpStatusCode.InternalServerError, "Ha ocurrido un error interno. Por favor, intente más tarde.")
+                KeyNotFoundException        => (HttpStatusCode.NotFound,            AppConstants.Middleware.NotFoundError),
+                UnauthorizedAccessException => (HttpStatusCode.Unauthorized,        AppConstants.Middleware.UnauthorizedError),
+                ArgumentException           => (HttpStatusCode.BadRequest,          exception.Message),
+                _                           => (HttpStatusCode.InternalServerError, AppConstants.Middleware.InternalServerError)
             };
 
             context.Response.StatusCode = (int)statusCode;

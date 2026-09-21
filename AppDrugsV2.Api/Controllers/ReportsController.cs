@@ -23,11 +23,7 @@ namespace AppDrugsV2.Api.Controllers
             _excelExportService  = excelExportService;
         }
 
-        // ─── TURNOS ───────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Exporta los turnos a un archivo Excel (.xlsx).
-        /// </summary>
+       
         [HttpGet("appointments/excel")]
         public async Task<IActionResult> ExportAppointmentsExcel(
             [FromQuery] DateTime? dateFrom,
@@ -49,9 +45,6 @@ namespace AppDrugsV2.Api.Controllers
             return File(bytes, AppConstants.ContentTypes.Excel, fileName);
         }
 
-        /// <summary>
-        /// Genera un PDF con el reporte de turnos usando Rotativa.
-        /// </summary>
         [HttpGet("appointments/pdf")]
         public async Task<IActionResult> ExportAppointmentsPdf(
             [FromQuery] DateTime? dateFrom,
@@ -90,11 +83,6 @@ namespace AppDrugsV2.Api.Controllers
             }
         }
 
-        // ─── INVENTARIO ───────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Exporta el inventario a un archivo Excel (.xlsx).
-        /// </summary>
         [HttpGet("inventory/excel")]
         public async Task<IActionResult> ExportInventoryExcel(
             [FromQuery] int?  gestorId,
@@ -114,9 +102,7 @@ namespace AppDrugsV2.Api.Controllers
             return File(bytes, AppConstants.ContentTypes.Excel, fileName);
         }
 
-        /// <summary>
-        /// Genera un PDF con el reporte de inventario usando Rotativa.
-        /// </summary>
+   
         [HttpGet("inventory/pdf")]
         public async Task<IActionResult> ExportInventoryPdf(
             [FromQuery] int?  gestorId,
