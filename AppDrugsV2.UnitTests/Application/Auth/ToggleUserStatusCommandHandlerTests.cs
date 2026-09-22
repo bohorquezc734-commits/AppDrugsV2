@@ -5,7 +5,6 @@ using AppDrugsV2.Domain.Entities;
 using FluentAssertions;
 using MockQueryable.Moq;
 using Moq;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -20,7 +19,7 @@ namespace AppDrugsV2.UnitTests.Application.Auth
         private ToggleUserStatusCommandHandler _handler;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
             _contextMock = new Mock<IApplicationDbContext>();
             _handler = new ToggleUserStatusCommandHandler(_contextMock.Object);

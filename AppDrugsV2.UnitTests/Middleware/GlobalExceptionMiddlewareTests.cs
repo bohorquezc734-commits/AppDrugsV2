@@ -1,10 +1,9 @@
-﻿using AppDrugsV2.Api.Middleware;
+using AppDrugsV2.Api.Middleware;
 using AppDrugsV2.Application.Common.Constants;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 using System;
 using System.IO;
 using System.Text.Json;

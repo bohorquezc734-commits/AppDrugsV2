@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace AppDrugsV2.UnitTests.Helpers
+namespace AppDrugsV2.UnitTests.Common
 {
     public static class MoqExtensions
     {
