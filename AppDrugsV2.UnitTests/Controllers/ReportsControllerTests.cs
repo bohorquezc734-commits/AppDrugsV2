@@ -7,7 +7,6 @@ using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
 using Rotativa.AspNetCore;
 using System;
 using System.Collections.Generic;
@@ -31,6 +30,12 @@ namespace AppDrugsV2.UnitTests.Controllers
             _controller = new ReportsController(_mediatorMock.Object, _excelExportServiceMock.Object);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _controller?.Dispose();
+        }
+
         [Test]
         public async Task ExportAppointmentsExcel_ShouldReturnFile_WhenSuccessful()
         {
@@ -52,8 +57,8 @@ namespace AppDrugsV2.UnitTests.Controllers
         [Test]
         public async Task ExportAppointmentsExcel_ShouldPassFilters_ToQuery()
         {
-            var dateFrom = new DateTime(2025, 1, 1);
-            var dateTo = new DateTime(2025, 12, 31);
+            var dateFrom = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var dateTo = new DateTime(2025, 12, 31, 0, 0, 0, DateTimeKind.Utc);
             var data = new List<AppointmentReportDto>();
             _mediatorMock.Setup(m => m.Send(
                     It.Is<GetAppointmentsReportQuery>(q =>
@@ -113,13 +118,6 @@ namespace AppDrugsV2.UnitTests.Controllers
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
-        [TearDown]
-        public void TearDown()
-        {
-            _controller?.Dispose();
-        }
-
-      
         [Test]
         public async Task ExportInventoryPdf_ShouldReturnViewAsPdf_WhenSuccessful()
         {

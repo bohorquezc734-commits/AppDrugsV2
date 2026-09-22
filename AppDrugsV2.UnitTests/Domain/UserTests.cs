@@ -1,7 +1,6 @@
 using AppDrugsV2.Domain.Entities;
 using AppDrugsV2.Domain.Enums;
 using FluentAssertions;
-using NUnit.Framework;
 using System;
 
 namespace AppDrugsV2.UnitTests.Domain

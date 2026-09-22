@@ -6,7 +6,6 @@ using AppDrugsV2.Domain.Enums;
 using FluentAssertions;
 using MockQueryable.Moq;
 using Moq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace AppDrugsV2.UnitTests.Application.Appointments
         private UpdateAppointmentStatusCommandHandler _handler;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
             _contextMock = new Mock<IApplicationDbContext>();
             _currentUserServiceMock = new Mock<ICurrentUserService>();

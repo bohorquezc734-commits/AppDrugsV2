@@ -10,7 +10,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
