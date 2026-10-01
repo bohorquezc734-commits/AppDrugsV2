@@ -46,12 +46,15 @@ namespace AppDrugsV2.UnitTests.Controllers
             _excelExportServiceMock.Setup(s => s.ExportAppointmentsToExcel(data))
                 .Returns(fileBytes);
 
-            var result = await _controller.ExportAppointmentsExcel(null, null, null, null);
+            var result = await _controller.ExportAppointmentsExcel(null!, null!, null!, null!);
 
             result.Should().BeOfType<FileContentResult>();
             var fileResult = result as FileContentResult;
-            fileResult!.ContentType.Should().Be(AppConstants.ContentTypes.Excel);
-            fileResult.FileContents.Should().BeEquivalentTo(fileBytes);
+            Assert.Multiple(() =>
+            {
+                fileResult!.ContentType.Should().Be(AppConstants.ContentTypes.Excel);
+                fileResult.FileContents.Should().BeEquivalentTo(fileBytes);
+            });
         }
 
         [Test]
@@ -84,12 +87,15 @@ namespace AppDrugsV2.UnitTests.Controllers
                 .Returns(fileBytes);
 
             
-            var result = await _controller.ExportInventoryExcel(null, null, null);
+            var result = await _controller.ExportInventoryExcel(null!, null!, null!);
 
             result.Should().BeOfType<FileContentResult>();
             var fileResult = result as FileContentResult;
-            fileResult!.ContentType.Should().Be(AppConstants.ContentTypes.Excel);
-            fileResult.FileContents.Should().BeEquivalentTo(fileBytes);
+            Assert.Multiple(() =>
+            {
+                fileResult!.ContentType.Should().Be(AppConstants.ContentTypes.Excel);
+                fileResult.FileContents.Should().BeEquivalentTo(fileBytes);
+            });
         }
 
         [Test]
@@ -114,7 +120,7 @@ namespace AppDrugsV2.UnitTests.Controllers
             _mediatorMock.Setup(m => m.Send(It.IsAny<GetAppointmentsReportQuery>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("PDF engine failure"));
 
-            var result = await _controller.ExportAppointmentsPdf(null, null, null, null);
+            var result = await _controller.ExportAppointmentsPdf(null!, null!, null!, null!);
 
             result.Should().BeOfType<BadRequestObjectResult>();
         }
@@ -128,13 +134,16 @@ namespace AppDrugsV2.UnitTests.Controllers
                 .ReturnsAsync(data);
 
            
-            var result = await _controller.ExportInventoryPdf(null, null, null);
+            var result = await _controller.ExportInventoryPdf(null!, null!, null!);
 
             
             result.Should().BeOfType<ViewAsPdf>();
             var pdfResult = result as ViewAsPdf;
-            pdfResult!.FileName.Should().StartWith("Inventario_");
-            pdfResult.FileName.Should().EndWith(".pdf");
+            Assert.Multiple(() =>
+            {
+                pdfResult!.FileName.Should().StartWith("Inventario_");
+                pdfResult.FileName.Should().EndWith(".pdf");
+            });
         }
       
     }

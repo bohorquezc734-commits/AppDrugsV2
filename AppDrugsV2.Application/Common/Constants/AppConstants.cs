@@ -144,6 +144,9 @@ namespace AppDrugsV2.Application.Common.Constants
             public const string NotificationNotFound    = "Notification not found";
             public const string CurrentPasswordIncorrect = "La contraseña actual es incorrecta.";
             public const string DuplicateInventory      = "Ya existe un inventario para este medicamento en esta sede";
+            public const string SedeNotExists           = "La sede con ID {0} no existe o está inactiva.";
+            public const string InventoryNotExists      = "El inventario con ID {0} no existe.";
+            public const string InsufficientStock       = "No hay suficiente stock. Stock disponible: {0}.";
 
             // Validación
             public const string EmailRequired        = "Email es requerido";
