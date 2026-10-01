@@ -3,8 +3,8 @@
     public class Result<T>
     {
         public bool IsSuccess { get; }
-        public T? Value { get; }  // ← Agregar ? para aceptar null
-        public string? Error { get; }  // ← Agregar ? para aceptar null
+        public T? Value { get; }  
+        public string? Error { get; }  
         public bool IsFailure => !IsSuccess;
 
         private Result(bool isSuccess, T? value, string? error)

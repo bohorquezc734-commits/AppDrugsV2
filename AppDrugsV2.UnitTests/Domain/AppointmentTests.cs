@@ -16,11 +16,14 @@ namespace AppDrugsV2.UnitTests.Domain
 
             var appointment = new Appointment(userId, gestorId);
 
-            appointment.UserId.Should().Be(userId);
-            appointment.GestorFarmaceuticoId.Should().Be(gestorId);
-            appointment.Status.Should().Be(AppointmentStatus.Recibido);
-            appointment.IsActive.Should().BeTrue();
-            appointment.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                appointment.UserId.Should().Be(userId);
+                appointment.GestorFarmaceuticoId.Should().Be(gestorId);
+                appointment.Status.Should().Be(AppointmentStatus.Recibido);
+                appointment.IsActive.Should().BeTrue();
+                appointment.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            });
         }
 
         [TestCase(0)]
@@ -64,8 +67,11 @@ namespace AppDrugsV2.UnitTests.Domain
 
             appointment.Entregar();
 
-            appointment.Status.Should().Be(AppointmentStatus.Entregado);
-            appointment.FechaEntrega.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                appointment.Status.Should().Be(AppointmentStatus.Entregado);
+                appointment.FechaEntrega.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            });
         }
 
         [Test]
@@ -77,8 +83,11 @@ namespace AppDrugsV2.UnitTests.Domain
             appointment.Cancelar(observaciones);
 
            
-            appointment.Status.Should().Be(AppointmentStatus.Cancelado);
-            appointment.Observaciones.Should().Be(observaciones);
+            Assert.Multiple(() =>
+            {
+                appointment.Status.Should().Be(AppointmentStatus.Cancelado);
+                appointment.Observaciones.Should().Be(observaciones);
+            });
         }
 
         [Test]

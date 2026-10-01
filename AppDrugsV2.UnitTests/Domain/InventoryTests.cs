@@ -16,12 +16,14 @@ namespace AppDrugsV2.UnitTests.Domain
             int quantity = 100;
 
             var inventory = new Inventory(drugId, gestorId, quantity);
-
-            inventory.DrugId.Should().Be(drugId);
-            inventory.GestorFarmaceuticoId.Should().Be(gestorId);
-            inventory.Quantity.Should().Be(quantity);
-            inventory.IsActive.Should().BeTrue();
-            inventory.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                inventory.DrugId.Should().Be(drugId);
+                inventory.GestorFarmaceuticoId.Should().Be(gestorId);
+                inventory.Quantity.Should().Be(quantity);
+                inventory.IsActive.Should().BeTrue();
+                inventory.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            });
         }
 
         [TestCase(-1)]
@@ -39,9 +41,11 @@ namespace AppDrugsV2.UnitTests.Domain
             var inventory = new Inventory(1, 2, 50);
 
             inventory.AddStock(20);
-
-            inventory.Quantity.Should().Be(70);
-            inventory.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                inventory.Quantity.Should().Be(70);
+                inventory.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            });
         }
 
         [Test]
@@ -50,9 +54,11 @@ namespace AppDrugsV2.UnitTests.Domain
             var inventory = new Inventory(1, 2, 50);
 
             inventory.RemoveStock(20);
-
-            inventory.Quantity.Should().Be(30);
-            inventory.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                inventory.Quantity.Should().Be(30);
+                inventory.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            });
         }
 
         [Test]

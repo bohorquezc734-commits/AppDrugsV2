@@ -13,6 +13,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppDrugsV2.Api", "AppDrugsV
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppDrugsV2.UnitTests", "AppDrugsV2.UnitTests\AppDrugsV2.UnitTests.csproj", "{C01AA5A7-F978-4725-8240-ABD873E51C42}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{5CE38E48-0F0F-430C-BEF2-E2038DF58F4B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{448902EF-0B84-49FE-A444-3007FCE48A60}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{5A15CA6A-5C9C-4ECF-BCA5-58B99A86F2E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,5 +94,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DDBC80B8-904C-448F-8783-BBA070973365} = {448902EF-0B84-49FE-A444-3007FCE48A60}
+		{01271973-E4EA-4B68-8290-90860B920FFC} = {5CE38E48-0F0F-430C-BEF2-E2038DF58F4B}
+		{1F8CBD06-C34A-41F9-8CED-28445491334A} = {5A15CA6A-5C9C-4ECF-BCA5-58B99A86F2E6}
+		{8B694324-A983-4771-BECD-F17DE729AC3D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6D74F167-805C-407A-BDCA-ECCEC6F9ED19}
 	EndGlobalSection
 EndGlobal

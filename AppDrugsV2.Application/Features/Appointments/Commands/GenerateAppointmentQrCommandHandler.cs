@@ -6,14 +6,7 @@ using AppDrugsV2.Application.Common.Results;
 
 namespace AppDrugsV2.Application.Features.Appointments.Commands
 {
-    /// <summary>
-    /// Orquesta la generación del QR para un turno:
-    ///   1. Valida que el turno exista.
-    ///   2. Genera el QR usando <see cref="IQrCodeService"/> (sin acoplarse a la librería).
-    ///   3. Persiste el QR en la entidad via el método de dominio AssignQrCode().
-    ///   4. Notifica en tiempo real al usuario via <see cref="INotificationHubService"/>
-    ///      (sin acoplarse a SignalR).
-    /// </summary>
+
     public class GenerateAppointmentQrCommandHandler
         : IRequestHandler<GenerateAppointmentQrCommand, Result<string>>
     {
@@ -35,7 +28,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
             GenerateAppointmentQrCommand request,
             CancellationToken cancellationToken)
         {
-            // ── 1. Buscar el turno ────────────────────────────────────────────────
+     
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(
                     a => a.Id == request.AppointmentId && a.IsActive,
@@ -45,13 +38,11 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                 return Result<string>.Failure(
                     $"El turno con ID {request.AppointmentId} {AppConstants.Messages.NotExistsKeyword}.");
 
-            // ── 2. Generar el código QR ───────────────────────────────────────────
-            // El contenido codificado puede ser una URL al detalle del turno,
-            // un JSON resumen, o cualquier identificador que decida el negocio.
+          
             var qrContent  = $"APPDRUGS|TURNO:{appointment.Id}|USUARIO:{appointment.UserId}|FECHA:{appointment.CreatedAt:yyyy-MM-dd}";
             var qrBase64   = _qrCodeService.GenerateBase64(qrContent);
 
-            // ── 3. Persistir usando el método de dominio (encapsulamiento) ────────
+           
             try
             {
                 appointment.AssignQrCode(qrBase64);
@@ -62,8 +53,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
                 return Result<string>.Failure(ex.Message);
             }
 
-            // ── 4. Notificar al usuario en tiempo real (fire-and-forget seguro) ──
-            // No lanzamos excepción si SignalR falla; el QR ya fue persistido.
+          
             try
             {
                 await _notificationHub.SendToUserAsync(
@@ -79,7 +69,7 @@ namespace AppDrugsV2.Application.Features.Appointments.Commands
             }
             catch
             {
-                // SignalR no disponible → no bloqueamos el flujo principal.
+
             }
 
             return Result<string>.Success(qrBase64);
